@@ -24,7 +24,7 @@ Firefly Framework is a modular Spring Boot superset spanning **40 repositories**
 - **CQRS and Event Sourcing** -- Command/query separation with reactive event store and projections
 - **Reactive from the ground up** -- Spring WebFlux, R2DBC, and Project Reactor throughout
 - **Enterprise integrations** -- ECM, identity providers, notifications, caching, and workflow orchestration
-- **Java 21** / **Spring Boot 3.5** / **Spring Cloud 2025**
+- **Java 25** (default, Java 21+ compatible) / **Spring Boot 3.5.9** / **Spring Cloud 2025**
 
 ### Quick Start
 

@@ -6,7 +6,7 @@ Complete reference of all framework modules, organized by capability.
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-parent](https://github.com/fireflyframework/fireflyframework-parent) | Parent POM managing Spring Boot 3.5, Spring Cloud 2025, Java 21, and all shared plugin/dependency configuration |
+| [fireflyframework-parent](https://github.com/fireflyframework/fireflyframework-parent) | Parent POM managing Spring Boot 3.5.9, Spring Cloud 2025, Java 25 (default, 21+ compatible), and all shared plugin/dependency configuration |
 | [fireflyframework-bom](https://github.com/fireflyframework/fireflyframework-bom) | Bill of Materials for conflict-free version alignment across all framework modules |
 
 ## Runtime Infrastructure
@@ -154,7 +154,7 @@ Then declare only the modules you need -- no version tags required:
 
 ## Technology Stack
 
-- **Java 21** with virtual threads support
+- **Java 25** (default, Java 21+ compatible) with virtual threads support
 - **Spring Boot 3.5.9** / **Spring Cloud 2025.0.1**
 - **Spring WebFlux** and **Project Reactor** for reactive programming
 - **R2DBC** for non-blocking database access
