@@ -15,7 +15,7 @@ _/ ____\___________    _____   ______  _  _____________|  | __
 
 **Enterprise-grade reactive framework with distributed transactions, event-driven patterns, and battle-tested reliability.**
 
-Firefly Framework is a modular Spring Boot superset providing production-ready building blocks for mission-critical distributed systems. Built on Spring WebFlux and Project Reactor, every module ships as an independent artifact and follows established enterprise patterns -- CQRS, Event Sourcing, Saga/TCC, and Event-Driven Architecture.
+Firefly Framework is a modular Spring Boot superset spanning **40 repositories** and providing production-ready building blocks for mission-critical distributed systems. Built on Spring WebFlux and Project Reactor, every module ships as an independent artifact and follows established enterprise patterns -- CQRS, Event Sourcing, Saga/TCC, and Event-Driven Architecture.
 
 ### Highlights
 

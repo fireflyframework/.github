@@ -9,6 +9,12 @@ Complete reference of all framework modules, organized by capability.
 | [fireflyframework-parent](https://github.com/fireflyframework/fireflyframework-parent) | Parent POM managing Spring Boot 3.5, Spring Cloud 2025, Java 21, and all shared plugin/dependency configuration |
 | [fireflyframework-bom](https://github.com/fireflyframework/fireflyframework-bom) | Bill of Materials for conflict-free version alignment across all framework modules |
 
+## Runtime Infrastructure
+
+| Repository | Purpose |
+|---|---|
+| [fireflyframework-config-server](https://github.com/fireflyframework/fireflyframework-config-server) | Spring Cloud Config Server for centralized configuration management across microservices with hierarchical native profiles |
+
 ## Core Framework
 
 | Repository | Purpose |
@@ -18,6 +24,13 @@ Complete reference of all framework modules, organized by capability.
 | [fireflyframework-utils](https://github.com/fireflyframework/fireflyframework-utils) | Shared utilities, template rendering, and common helper functions |
 | [fireflyframework-validators](https://github.com/fireflyframework/fireflyframework-validators) | Annotation-based validators for financial, identity, and general-purpose data formats |
 | [fireflyframework-plugins](https://github.com/fireflyframework/fireflyframework-plugins) | Lightweight plugin system with annotation-based discovery and hot-loadable JAR/Spring Bean loaders |
+
+## Application Layer
+
+| Repository | Purpose |
+|---|---|
+| [fireflyframework-application](https://github.com/fireflyframework/fireflyframework-application) | Application layer library enabling business process-oriented microservices with plugin architecture, security aspects, and configuration resolution |
+| [fireflyframework-backoffice](https://github.com/fireflyframework/fireflyframework-backoffice) | Backoffice and internal portal extension with context resolution and resource controller abstractions |
 
 ## Reactive Infrastructure
 
@@ -38,6 +51,12 @@ Complete reference of all framework modules, organized by capability.
 | [fireflyframework-transactional-engine](https://github.com/fireflyframework/fireflyframework-transactional-engine) | Distributed transactions via Saga and TCC with compensation, backpressure, and persistence |
 | [fireflyframework-workflow](https://github.com/fireflyframework/fireflyframework-workflow) | Workflow orchestration with AOP-based definitions, state persistence, and scheduling |
 | [fireflyframework-data](https://github.com/fireflyframework/fireflyframework-data) | Data processing with job orchestration, enrichment pipelines, and batch/async workloads |
+
+## Business Rules
+
+| Repository | Purpose |
+|---|---|
+| [fireflyframework-rule-engine](https://github.com/fireflyframework/fireflyframework-rule-engine) | YAML DSL-based rule engine with AST processing, Python compilation, audit trails, and reactive APIs for dynamic business rule evaluation |
 
 ## Enterprise Content Management
 
@@ -68,6 +87,20 @@ Complete reference of all framework modules, organized by capability.
 | [fireflyframework-notifications-resend](https://github.com/fireflyframework/fireflyframework-notifications-resend) | Resend email adapter |
 | [fireflyframework-notifications-sendgrid](https://github.com/fireflyframework/fireflyframework-notifications-sendgrid) | SendGrid email adapter |
 | [fireflyframework-notifications-twilio](https://github.com/fireflyframework/fireflyframework-notifications-twilio) | Twilio SMS adapter |
+
+## Integration
+
+| Repository | Purpose |
+|---|---|
+| [fireflyframework-webhooks](https://github.com/fireflyframework/fireflyframework-webhooks) | Reactive webhook ingestion with provider-agnostic routing, message queue integration, rate limiting, and comprehensive observability |
+| [fireflyframework-callbacks](https://github.com/fireflyframework/fireflyframework-callbacks) | Outbound webhook management for dispatching events to external systems with circuit breakers, retry logic, and domain authorization |
+
+## Tooling & Automation
+
+| Repository | Purpose |
+|---|---|
+| [fireflyframework-cli](https://github.com/fireflyframework/fireflyframework-cli) | Go-based CLI for scaffolding, building, and managing Firefly Framework projects with dependency-aware build orchestration |
+| [.github](https://github.com/fireflyframework/.github) | Organization profile, documentation, and community health files |
 
 ## Getting Started
 
