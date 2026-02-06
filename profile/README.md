@@ -1,8 +1,17 @@
-# Firefly Framework
-
-**Enterprise-grade reactive framework with distributed transactions, event-driven patterns, and battle-tested reliability. Built for mission-critical systems that power the world's most demanding applications -- from fintech to healthcare to large-scale SaaS platforms.**
-
----
+```
+  _____.__                _____.__                            
+_/ ____\__|______   _____/ ____\  | ___.__.                   
+\   __\|  \_  __ \_/ __ \   __\|  |<   |  |                   
+ |  |  |  ||  | \/\  ___/|  |  |  |_\___  |                   
+ |__|  |__||__|    \___  >__|  |____/ ____|                   
+                       \/           \/                        
+  _____                                                 __    
+_/ ____\___________    _____   ______  _  _____________|  | __
+\   __\\_  __ \__  \  /     \_/ __ \ \/ \/ /  _ \_  __ \  |/ /
+ |  |   |  | \// __ \|  Y Y  \  ___/\     (  <_> )  | \/    < 
+ |__|   |__|  (____  /__|_|  /\___  >\/\_/ \____/|__|  |__|_ \
+                   \/      \/     \/                        \/
+```
 
 ## About
 
