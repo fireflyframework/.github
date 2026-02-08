@@ -27,7 +27,33 @@ Firefly Framework is a modular Spring Boot superset spanning **40 repositories**
 - **Enterprise integrations** -- ECM, identity providers, notifications, caching, and workflow orchestration
 - **Java 25** (default, Java 21+ compatible) / **Spring Boot 3.5.9** / **Spring Cloud 2025**
 
-### Quick Start
+### Installation
+
+The fastest way to get started is with the **[Firefly CLI](https://github.com/fireflyframework/fireflyframework-cli)** (`flywork`):
+
+**macOS / Linux:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/fireflyframework/fireflyframework-cli/main/install.sh | bash
+```
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/fireflyframework/fireflyframework-cli/main/install.ps1 | iex
+```
+
+Then bootstrap the entire framework into your local environment:
+
+```bash
+flywork setup              # clones all repos in dependency order and installs to ~/.m2
+flywork create core        # scaffold a new microservice from a built-in archetype
+flywork doctor             # verify your environment (Java, Maven, Git, etc.)
+```
+
+Four project archetypes are available: **core**, **domain**, **application**, and **library**. See the [CLI documentation](https://github.com/fireflyframework/fireflyframework-cli) for full details.
+
+### Quick Start (Maven)
 
 ```xml
 <parent>
@@ -38,6 +64,14 @@ Firefly Framework is a modular Spring Boot superset spanning **40 repositories**
 ```
 
 Then pick the modules you need. See the [full module catalog and getting started guide](https://github.com/fireflyframework/.github/blob/main/docs/MODULE_CATALOG.md) for details.
+
+### GenAI
+
+Firefly Framework also provides **[fireflyframework-genai](https://github.com/fireflyframework/fireflyframework-genai)** -- a production-grade GenAI metaframework built on [Pydantic AI](https://ai.pydantic.dev/). It extends Pydantic AI with six composable layers covering agents, tools, reasoning patterns (ReAct, CoT, Plan-and-Execute, and more), DAG pipeline orchestration, observability, and REST / message-queue exposure -- so you can build, validate, and deploy intelligent agents without coupling domain logic to infrastructure.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/fireflyframework/fireflyframework-genai/main/install.sh | bash
+```
 
 ### License
 
