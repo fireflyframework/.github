@@ -11,6 +11,7 @@ _/ ____\___________    _____   ______  _  _____________|  | __
  |  |   |  | \// __ \|  Y Y  \  ___/\     (  <_> )  | \/    < 
  |__|   |__|  (____  /__|_|  /\___  >\/\_/ \____/|__|  |__|_ \
                    \/      \/     \/                        \/
+ --------------------------> Enterprise software made easy  <-
 ```
 
 **Enterprise-grade reactive framework with distributed transactions, event-driven patterns, and battle-tested reliability.**
