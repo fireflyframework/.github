@@ -76,6 +76,11 @@ Firefly Framework also provides **[fireflyframework-genai](https://github.com/fi
 curl -fsSL https://raw.githubusercontent.com/fireflyframework/fireflyframework-genai/main/install.sh | bash
 ```
 
+### CI/CD & Developer Guides
+
+- [Module Catalog](https://github.com/fireflyframework/.github/blob/main/docs/MODULE_CATALOG.md)
+- [CI/CD Configuration Guide](https://github.com/fireflyframework/.github/blob/main/docs/CI_CD_GUIDE.md)
+
 ### License
 
 Apache License 2.0 -- Copyright 2024-2026 Firefly Software Solutions Inc.
