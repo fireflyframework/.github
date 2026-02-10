@@ -36,39 +36,39 @@ Our CI/CD system solves this with three key ideas:
 Here is what the architecture looks like:
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                        .github repository                            │
-│                                                                      │
-│   .github/workflows/                                                 │
-│   ├── java-ci.yml            Shared CI for all Java repos            │
-│   ├── java-release.yml       Shared release for all Java repos       │
-│   ├── go-ci.yml              Shared CI for Go repos                  │
-│   ├── go-release.yml         Shared release for Go repos             │
-│   ├── python-ci.yml          Shared CI for Python repos              │
-│   ├── python-release.yml     Shared release for Python repos         │
-│   └── dag-orchestrator.yml   Cross-repo cascade coordinator          │
-└──────────────────────────────────────────────────────────────────────┘
-                            ▲
-                            │  workflow_call (reusable workflow)
-                            │
-┌──────────────────────────────────────────────────────────────────────┐
-│                    Each framework repository                         │
-│                                                                      │
-│   .github/workflows/                                                 │
-│   ├── ci.yml       → 5-10 line file that calls shared java-ci.yml   │
-│   └── release.yml  → 5-10 line file that calls shared release.yml   │
-└──────────────────────────────────────────────────────────────────────┘
-                            ▲
-                            │  triggered by
-                            │
-┌──────────────────────────────────────────────────────────────────────┐
-│                        Trigger Events                                │
-│                                                                      │
-│   Push to develop         → ci.yml   → build & test → cascade CI     │
-│   Pull request            → ci.yml   → build & test (no cascade)     │
-│   Tag push (v*)           → release.yml → publish + release          │
-│   Manual workflow_dispatch → release.yml → publish + release          │
-└──────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────┐
+│                      .github repository                        │
+│                                                                │
+│  .github/workflows/                                            │
+│  ├── java-ci.yml            Shared CI for all Java repos       │
+│  ├── java-release.yml       Shared release for all Java repos  │
+│  ├── go-ci.yml              Shared CI for Go repos             │
+│  ├── go-release.yml         Shared release for Go repos        │
+│  ├── python-ci.yml          Shared CI for Python repos         │
+│  ├── python-release.yml     Shared release for Python repos    │
+│  └── dag-orchestrator.yml   Cross-repo cascade coordinator     │
+└────────────────────────────────────────────────────────────────┘
+                          ▲
+                          │  workflow_call (reusable workflow)
+                          │
+┌────────────────────────────────────────────────────────────────┐
+│                   Each framework repository                    │
+│                                                                │
+│  .github/workflows/                                            │
+│  ├── ci.yml       → calls shared java-ci.yml   (5-10 lines)    │
+│  └── release.yml  → calls shared release.yml   (5-10 lines)    │
+└────────────────────────────────────────────────────────────────┘
+                          ▲
+                          │  triggered by
+                          │
+┌────────────────────────────────────────────────────────────────┐
+│                       Trigger Events                           │
+│                                                                │
+│  Push to develop          → ci.yml → build & test → cascade CI │
+│  Pull request             → ci.yml → build & test (no cascade) │
+│  Tag push (v*)            → release.yml → publish + release    │
+│  Manual workflow_dispatch → release.yml → publish + release    │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 ---
