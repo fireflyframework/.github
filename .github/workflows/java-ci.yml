@@ -18,6 +18,11 @@ on:
         required: false
         type: string
         default: ''
+      checkout-ref:
+        description: 'Git ref to checkout (leave empty for default behavior)'
+        required: false
+        type: string
+        default: ''
       trigger-downstream:
         description: 'Trigger DAG orchestrator for downstream repos after successful build'
         required: false
@@ -32,6 +37,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.checkout-ref || github.sha }}
 
       - name: Set up JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v4
