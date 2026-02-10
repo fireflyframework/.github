@@ -29,7 +29,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: read
-      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,8 +89,14 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+  trigger-downstream:
+    needs: build
+    if: success() && inputs.trigger-downstream && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
       - name: Trigger downstream CI via DAG orchestrator
-        if: success() && inputs.trigger-downstream && github.event_name == 'push'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
