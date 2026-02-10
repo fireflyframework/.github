@@ -26,7 +26,7 @@ Firefly Framework uses a **centralized shared-workflow model**. Instead of dupli
 ### The Three Components
 
 ```
-┌──────────────────────────────────────────────────────┐
+┌───────────────────────────────────────────────────────┐
 │                  .github repository                   │
 │                                                       │
 │   .github/workflows/                                  │
@@ -37,28 +37,28 @@ Firefly Framework uses a **centralized shared-workflow model**. Instead of dupli
 │   ├── python-ci.yml        (shared CI for Python)     │
 │   ├── python-release.yml   (shared release for Python)│
 │   └── dag-orchestrator.yml (cross-repo coordinator)   │
-└──────────────────────────────────────────────────────┘
+└───────────────────────────────────────────────────────┘
                           ▲
                           │ workflow_call
                           │
-┌──────────────────────────────────────────────────────┐
+┌───────────────────────────────────────────────────────┐
 │              Each framework repository                │
 │                                                       │
 │   .github/workflows/                                  │
 │   ├── ci.yml       → calls shared CI workflow         │
 │   └── release.yml  → calls shared release workflow    │
-└──────────────────────────────────────────────────────┘
+└───────────────────────────────────────────────────────┘
                           ▲
                           │ triggers
                           │
-┌──────────────────────────────────────────────────────┐
+┌───────────────────────────────────────────────────────┐
 │                   Trigger Events                      │
 │                                                       │
-│   • Push to develop         → ci.yml                  │
-│   • Pull request            → ci.yml                  │
-│   • Tag push (v*)           → release.yml             │
-│   • Manual workflow_dispatch → release.yml             │
-└──────────────────────────────────────────────────────┘
+│   • Push to develop           → ci.yml                │
+│   • Pull request              → ci.yml                │
+│   • Tag push (v*)             → release.yml           │
+│   • Manual workflow_dispatch  → release.yml           │
+└───────────────────────────────────────────────────────┘
 ```
 
 ### Why This Design?
