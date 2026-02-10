@@ -12,6 +12,14 @@ on:
         required: false
         default: false
         type: boolean
+      mode:
+        description: 'What to trigger on downstream repos: ci (rebuild) or release (publish + release)'
+        required: false
+        default: 'ci'
+        type: choice
+        options:
+          - ci
+          - release
 
 jobs:
   plan:
@@ -37,32 +45,51 @@ jobs:
       - name: Compute affected repos
         id: affected
         run: |
+          echo "Mode: ${{ inputs.mode }}"
+          echo "Trigger repo: ${{ inputs.trigger-repo }}"
+          echo "Build all: ${{ inputs.build-all }}"
+
           if [ "${{ inputs.build-all }}" = "true" ]; then
             REPOS=$(./flywork dag export --json | jq -c '.layers')
             echo "repos=$(./flywork dag export --json | jq -c '[.layers[][]]')" >> "$GITHUB_OUTPUT"
             echo "layers=$REPOS" >> "$GITHUB_OUTPUT"
           else
             AFFECTED=$(./flywork dag affected --from "${{ inputs.trigger-repo }}" --json)
-            echo "repos=$(echo "$AFFECTED" | jq -c '.affected')" >> "$GITHUB_OUTPUT"
+            REPOS=$(echo "$AFFECTED" | jq -c '.affected')
+            COUNT=$(echo "$AFFECTED" | jq '.count')
+            echo "repos=$REPOS" >> "$GITHUB_OUTPUT"
             echo "layers=[]" >> "$GITHUB_OUTPUT"
+            echo "Affected repos ($COUNT): $REPOS"
           fi
 
-  build:
+  dispatch:
     needs: plan
-    if: needs.plan.outputs.affected != '[]'
+    if: needs.plan.outputs.affected != '[]' && needs.plan.outputs.affected != 'null'
     runs-on: ubuntu-latest
     strategy:
       matrix:
         repo: ${{ fromJson(needs.plan.outputs.affected) }}
       fail-fast: false
     steps:
-      - name: Trigger CI on ${{ matrix.repo }}
+      - name: Determine workflow to trigger
+        id: workflow
+        run: |
+          if [ "${{ inputs.mode }}" = "release" ]; then
+            echo "name=release.yml" >> "$GITHUB_OUTPUT"
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+            echo "Dispatching release workflow on ${{ matrix.repo }}"
+          else
+            echo "name=ci.yml" >> "$GITHUB_OUTPUT"
+            echo "ref=develop" >> "$GITHUB_OUTPUT"
+            echo "Dispatching CI workflow on ${{ matrix.repo }}"
+          fi
+
+      - name: Trigger ${{ inputs.mode }} on ${{ matrix.repo }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh api \
             --method POST \
             -H "Accept: application/vnd.github+json" \
-            repos/fireflyframework/${{ matrix.repo }}/actions/workflows/ci.yml/dispatches \
-            -f ref=develop \
-            -f "inputs[triggered-by]=${{ github.run_id }}" || true
+            repos/fireflyframework/${{ matrix.repo }}/actions/workflows/${{ steps.workflow.outputs.name }}/dispatches \
+            -f ref=${{ steps.workflow.outputs.ref }} || echo "::warning::Could not dispatch ${{ inputs.mode }} to ${{ matrix.repo }}"
