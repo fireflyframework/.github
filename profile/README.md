@@ -14,6 +14,9 @@ _/ ____\___________    _____   ______  _  _____________|  | __
  --------------------------> Enterprise software made easy  <-
 ```
 
+[![CI](https://github.com/fireflyframework/fireflyframework-core/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-core/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 **Enterprise-grade reactive framework with distributed transactions, event-driven patterns, and battle-tested reliability.**
 
 Firefly Framework is a modular Spring Boot superset spanning **40 repositories** and providing production-ready building blocks for mission-critical distributed systems. Built on Spring WebFlux and Project Reactor, every module ships as an independent artifact and follows established enterprise patterns -- CQRS, Event Sourcing, Saga/TCC, and Event-Driven Architecture.
@@ -59,7 +62,7 @@ Four project archetypes are available: **core**, **domain**, **application**, an
 <parent>
     <groupId>org.fireflyframework</groupId>
     <artifactId>fireflyframework-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>26.01.01</version>
 </parent>
 ```
 
