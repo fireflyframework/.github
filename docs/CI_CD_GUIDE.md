@@ -18,6 +18,7 @@ Everything you need to know about how Firefly Framework builds, tests, publishes
 10. [Version Management — CalVer and the CLI](#version-management)
 11. [Branch Strategy](#branch-strategy)
 12. [Troubleshooting](#troubleshooting)
+13. [CI Status Dashboard](#ci-status-dashboard)
 
 ---
 
@@ -36,39 +37,41 @@ Our CI/CD system solves this with three key ideas:
 Here is what the architecture looks like:
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                      .github repository                        │
-│                                                                │
-│  .github/workflows/                                            │
-│  ├── java-ci.yml            Shared CI for all Java repos       │
-│  ├── java-release.yml       Shared release for all Java repos  │
-│  ├── go-ci.yml              Shared CI for Go repos             │
-│  ├── go-release.yml         Shared release for Go repos        │
-│  ├── python-ci.yml          Shared CI for Python repos         │
-│  ├── python-release.yml     Shared release for Python repos    │
-│  └── dag-orchestrator.yml   Cross-repo cascade coordinator     │
-└────────────────────────────────────────────────────────────────┘
-                          ▲
-                          │  workflow_call (reusable workflow)
-                          │
-┌────────────────────────────────────────────────────────────────┐
-│                   Each framework repository                    │
-│                                                                │
-│  .github/workflows/                                            │
-│  ├── ci.yml       → calls shared java-ci.yml   (5-10 lines)    │
-│  └── release.yml  → calls shared release.yml   (5-10 lines)    │
-└────────────────────────────────────────────────────────────────┘
-                          ▲
-                          │  triggered by
-                          │
-┌────────────────────────────────────────────────────────────────┐
-│                       Trigger Events                           │
-│                                                                │
-│  Push to develop          → ci.yml → build & test → cascade CI │
-│  Pull request             → ci.yml → build & test (no cascade) │
-│  Tag push (v*)            → release.yml → publish + release    │
-│  Manual workflow_dispatch → release.yml → publish + release    │
-└────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                        .github repository                           │
+│                                                                     │
+│  .github/workflows/                                                 │
+│  ├── java-ci.yml                Shared CI for all Java repos        │
+│  ├── java-release.yml           Shared release for all Java repos   │
+│  ├── go-ci.yml                  Shared CI for Go repos              │
+│  ├── go-release.yml             Shared release for Go repos         │
+│  ├── python-ci.yml              Shared CI for Python repos          │
+│  ├── python-release.yml         Shared release for Python repos     │
+│  ├── dag-orchestrator.yml       Cross-repo cascade coordinator      │
+│  └── dependabot-auto-merge.yml  Auto-merge patch/minor Dependabot   │
+└─────────────────────────────────────────────────────────────────────┘
+                            ▲
+                            │  workflow_call (reusable workflow)
+                            │
+┌─────────────────────────────────────────────────────────────────────┐
+│                     Each framework repository                       │
+│                                                                     │
+│  .github/workflows/                                                 │
+│  ├── ci.yml       → calls shared java-ci.yml   (10-15 lines)       │
+│  └── release.yml  → calls shared release.yml   (10-15 lines)       │
+└─────────────────────────────────────────────────────────────────────┘
+                            ▲
+                            │  triggered by
+                            │
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Trigger Events                              │
+│                                                                     │
+│  Push to develop            → ci.yml → build & test → cascade CI    │
+│  Pull request               → ci.yml → build & test (no cascade)    │
+│  Tag push (v*)              → release.yml → publish + release       │
+│  workflow_dispatch (manual) → ci.yml or release.yml                 │
+│  workflow_dispatch (DAG)    → ci.yml or release.yml (from cascade)  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -115,14 +118,23 @@ on:
     branches: [develop]
   pull_request:
     branches: [develop, main]
+  workflow_dispatch:
+    inputs:
+      triggered-by:
+        description: 'Orchestrator run ID'
+        required: false
+        type: string
 
 jobs:
-  ci:
+  build:
     uses: fireflyframework/.github/.github/workflows/java-ci.yml@main
-    secrets: inherit
+    with:
+      java-version: '25'
 ```
 
-This file does not contain any build logic. It just says: "when there is a push or PR, run the `java-ci.yml` workflow from the `.github` repo."
+This file does not contain any build logic. It just says: "when there is a push, PR, or dispatch, run the `java-ci.yml` workflow from the `.github` repo."
+
+The `workflow_dispatch` trigger with a `triggered-by` input is what allows the DAG orchestrator to trigger this repo's CI from the cascade. Without it, the orchestrator cannot dispatch workflows to this repo.
 
 ### Step 2: GitHub fetches the shared workflow
 
@@ -142,14 +154,15 @@ Even though the workflow YAML comes from the `.github` repo, it runs **in the co
 
 This is what makes the pattern so powerful — one workflow definition, 40 different execution contexts.
 
-### Why `secrets: inherit` is critical
+### Secrets: `GITHUB_TOKEN` vs `ORG_DISPATCH_TOKEN`
 
-The `secrets: inherit` line passes all of the calling repo's secrets (including `GITHUB_TOKEN`) to the shared workflow. Without it:
-- Maven cannot authenticate with GitHub Packages to download dependencies
-- The workflow cannot publish artifacts
-- The workflow cannot create GitHub Releases
+Two tokens are used in the CI/CD system:
 
-If you forget this line, every build step that needs authentication will fail with "401 Unauthorized" or "Permission denied."
+1. **`GITHUB_TOKEN`** — Automatically provided by GitHub Actions. Used for Maven dependency resolution, artifact publishing, and creating GitHub Releases. This token is scoped to the **current repository** and is always available in reusable workflows without `secrets: inherit`.
+
+2. **`ORG_DISPATCH_TOKEN`** — An organization-level secret (Personal Access Token) with `all` repository visibility. Used exclusively for **cross-repo workflow dispatching** — when `java-ci.yml` or `java-release.yml` needs to trigger the DAG orchestrator in the `.github` repo, or when the DAG orchestrator needs to dispatch CI/release workflows in other repos. Because it is an org secret with `all` visibility, it is automatically available in reusable workflows called by any repo in the organization.
+
+**When is `secrets: inherit` needed?** For Java repos, `secrets: inherit` is not strictly required because the two tokens the shared workflows use (`GITHUB_TOKEN` and `ORG_DISPATCH_TOKEN`) are both automatically available. Go repos include `secrets: inherit` as a safety measure. If you add custom repo-level secrets that shared workflows need to access, you would need `secrets: inherit` to pass them through.
 
 ---
 
@@ -168,7 +181,7 @@ If you forget this line, every build step that needs authentication will fail wi
 | Configure GitHub Packages | Writes `~/.m2/settings.xml` | Maven needs credentials to download framework dependencies from GitHub Packages — even reading public packages requires authentication |
 | Build with Maven | Runs `mvn -B verify` | The `-B` flag suppresses download progress noise. `verify` compiles, tests, and checks the project without deploying |
 | Upload test reports | Saves Surefire/Failsafe reports as artifacts | Even if the build fails, test reports are preserved for 7 days so you can debug failures without re-running |
-| Trigger downstream CI | Dispatches the DAG orchestrator | **This is the cascade trigger.** After a successful push build, the system automatically rebuilds all repos that depend on this one |
+| Trigger downstream CI | Dispatches the DAG orchestrator using `ORG_DISPATCH_TOKEN` | **This is the cascade trigger.** After a successful push build, the system automatically rebuilds all repos that depend on this one |
 
 **Inputs:**
 
@@ -179,7 +192,7 @@ If you forget this line, every build step that needs authentication will fail wi
 | `maven-args` | string | `""` | Extra arguments passed to Maven |
 | `trigger-downstream` | boolean | `true` | Whether to trigger the DAG cascade after success |
 
-**Permissions required:** `packages: read` (dependency resolution) + `actions: write` (dispatching DAG orchestrator)
+**Cross-repo dispatch:** The "Trigger downstream CI" step uses `secrets.ORG_DISPATCH_TOKEN` (not `GITHUB_TOKEN`) to dispatch the DAG orchestrator in the `.github` repo. `GITHUB_TOKEN` is scoped to the current repo and cannot trigger workflows in other repos.
 
 > **Note:** The cascade only triggers on `push` events (merges to develop), not on pull requests. This is intentional — PRs should validate the current repo only. The full cascade happens after the PR is merged.
 
@@ -194,10 +207,10 @@ If you forget this line, every build step that needs authentication will fail wi
 | Checkout | Clones the repo | Need source code to build the artifact |
 | Set up JDK | Installs Temurin JDK | Same as CI |
 | Configure GitHub Packages | Writes `~/.m2/settings.xml` | Needs write credentials to publish artifacts |
-| Deploy to GitHub Packages | Runs `mvn deploy` | Compiles, packages, and uploads the JAR/POM to the GitHub Packages Maven registry. Tests are skipped because CI already validated them |
+| Deploy to GitHub Packages | Runs `mvn deploy` with 409 handling | Compiles, packages, and uploads the JAR/POM to the GitHub Packages Maven registry. Tests are skipped because CI already validated them |
 | Extract version | Reads version from POM | The `softprops/action-gh-release` action needs to know the version to create the tag and name the release |
 | Create GitHub Release | Uses `softprops/action-gh-release@v2` | Creates a tagged release on GitHub with auto-generated release notes. The `tag_name` is set explicitly because when triggered via `workflow_dispatch` there is no tag in `GITHUB_REF` |
-| Trigger downstream releases | Dispatches DAG orchestrator in release mode | **After this repo is released, all its downstream dependents are also released.** This is how a single release cascades through the entire dependency graph |
+| Trigger downstream releases | Dispatches DAG orchestrator using `ORG_DISPATCH_TOKEN` | **After this repo is released, all its downstream dependents are also released.** This is how a single release cascades through the entire dependency graph |
 
 **Inputs:**
 
@@ -206,7 +219,9 @@ If you forget this line, every build step that needs authentication will fail wi
 | `java-version` | string | `25` | JDK version |
 | `trigger-downstream` | boolean | `true` | Whether to cascade releases to downstream repos |
 
-**Permissions required:** `contents: write` (creating releases/tags) + `packages: write` (publishing artifacts) + `actions: write` (dispatching DAG orchestrator)
+**Permissions required (on caller workflow):** `contents: write` (creating releases/tags) + `packages: write` (publishing artifacts)
+
+**Cross-repo dispatch:** Same as `java-ci.yml` — uses `secrets.ORG_DISPATCH_TOKEN` to dispatch the DAG orchestrator.
 
 **409 Conflict handling:** GitHub Packages does not allow overwriting existing versions. When you re-run a release for a version that was already published, the deploy step will get a 409 error. The workflow detects this specifically — if the error is a 409, it logs a warning and continues to the GitHub Release step (which is usually why you are re-running). If the error is anything else, the workflow fails.
 
@@ -222,7 +237,7 @@ If you forget this line, every build step that needs authentication will fail wi
 
 ### `go-release.yml` — Go Release
 
-**What it does:** Cross-compiles for 6 platforms and uploads binaries to a GitHub Release.
+**What it does:** Cross-compiles for 6 platforms and uploads binaries to a GitHub Release. Each platform builds in a separate matrix job. Binaries are compiled with `-ldflags` embedding the version and commit SHA. Linux/macOS binaries are packaged as `.tar.gz`, Windows as `.zip`.
 
 | Input | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -239,11 +254,33 @@ If you forget this line, every build step that needs authentication will fail wi
 |-------|------|---------|-------------|
 | `python-version` | string | `3.13` | Python version |
 
-Uses `uv` as the package manager for fast dependency resolution.
+Uses `uv` as the package manager (via `astral-sh/setup-uv@v4`) for fast dependency resolution.
+
+**Timeouts and error handling:**
+- The job has a `timeout-minutes: 15` limit to prevent indefinite hangs.
+- The `pyright` step has its own `timeout-minutes: 10` and `continue-on-error: true`. Type checking is non-blocking — if pyright fails or times out, the workflow continues to run tests. This prevents type-checking issues from blocking the entire CI pipeline while the codebase incrementally improves type coverage.
 
 ### `python-release.yml` — Python Release
 
-**What it does:** Builds a Python package (wheel + sdist) and creates a GitHub Release with the distribution files attached.
+**What it does:** Builds a Python package (wheel + sdist) using `uv build` and creates a GitHub Release with the distribution files attached.
+
+### `dependabot-auto-merge.yml` — Dependabot Auto-Merge
+
+**What it does:** Automatically approves and squash-merges Dependabot pull requests for **patch** and **minor** version updates. Major version updates are left for manual review.
+
+**Trigger:** `on: pull_request` — runs on every PR but immediately exits unless `github.actor == 'dependabot[bot]'`.
+
+**Steps:**
+
+| Step | What it does | Why |
+|------|-------------|-----|
+| Fetch Dependabot metadata | Reads the update type (patch/minor/major) | Uses `dependabot/fetch-metadata@v2` to determine the semver update category |
+| Approve | Approves the PR via `gh pr review --approve` | Only for patch and minor updates — low-risk changes that rarely break anything |
+| Auto-merge | Merges the PR via `gh pr merge --auto --squash` | Squash merge keeps the commit history clean. `--auto` waits for required status checks to pass before merging |
+
+**Permissions:** `contents: write` + `pull-requests: write`
+
+> **Note:** This workflow is defined in the `.github` repo and applies to all repositories in the organization via GitHub's default community health file mechanism. Individual repos do not need their own copy.
 
 ### `dag-orchestrator.yml` — Cross-Repo Cascade Coordinator
 
@@ -280,16 +317,17 @@ To illustrate, let's walk through what happens when you push a commit to `develo
 5. Build succeeds ✓
    │
 6. java-ci.yml's last step: "Trigger downstream CI via DAG orchestrator"
-   │  Dispatches: dag-orchestrator.yml with mode=ci, trigger-repo=fireflyframework-utils
+   │  Uses ORG_DISPATCH_TOKEN to dispatch dag-orchestrator.yml
+   │  with mode=ci, trigger-repo=fireflyframework-utils
    │
-7. DAG orchestrator builds the flywork CLI and runs:
+7. DAG orchestrator checks out the CLI repo, builds flywork, and runs:
    │  flywork dag affected --from fireflyframework-utils --json
    │  → Returns all downstream repos (e.g., r2dbc, cqrs, web, core, domain, ...)
    │
-8. For each affected repo, dispatches ci.yml on develop
-   │  → fireflyframework-r2dbc/ci.yml
-   │  → fireflyframework-cqrs/ci.yml
-   │  → fireflyframework-web/ci.yml
+8. For each affected repo, uses ORG_DISPATCH_TOKEN to dispatch ci.yml on develop
+   │  → fireflyframework-r2dbc/ci.yml (workflow_dispatch)
+   │  → fireflyframework-cqrs/ci.yml (workflow_dispatch)
+   │  → fireflyframework-web/ci.yml (workflow_dispatch)
    │  → ... (all downstream repos in parallel)
    │
 9. Each downstream repo builds and tests against the NEW version of utils
@@ -302,6 +340,7 @@ To illustrate, let's walk through what happens when you push a commit to `develo
 - **The cascade only triggers on `push` events**, not on pull requests. This is intentional. PRs should validate the current repo quickly. The full cascade runs after the PR is merged to develop.
 - **The cascade is triggered by the CI workflow itself**, not by a separate cron job or webhook. This means it happens automatically — no human intervention needed.
 - **The DAG orchestrator dispatches all affected repos in parallel** (using a GitHub Actions matrix). It does not wait for layer 2 to finish before starting layer 3, because each repo resolves its dependencies from GitHub Packages (the latest published version), not from the local build.
+- **Cross-repo dispatch uses `ORG_DISPATCH_TOKEN`**, not `GITHUB_TOKEN`. The default `GITHUB_TOKEN` is scoped to the current repository and cannot dispatch workflows in other repos. The `ORG_DISPATCH_TOKEN` is an org-level PAT that has access to all repos.
 
 ### How the Cascade Works — Release Mode
 
@@ -337,9 +376,11 @@ In per-repo caller workflows, you can pass this input:
 jobs:
   release:
     uses: fireflyframework/.github/.github/workflows/java-release.yml@main
-    secrets: inherit
     with:
       trigger-downstream: false  # do not cascade
+    permissions:
+      contents: write
+      packages: write
 ```
 
 ---
@@ -350,11 +391,23 @@ The DAG orchestrator is the "brain" of the cascade system. It lives in the `.git
 
 ### How It Works
 
-1. **Checkout and build the CLI** — It checks out the `fireflyframework-cli` repo and compiles the `flywork` binary. The CLI contains the full dependency graph definition.
+1. **Checkout and build the CLI** — It checks out the `fireflyframework-cli` repo (from the `develop` branch) and compiles the `flywork` binary. The CLI contains the full dependency graph definition.
 
-2. **Compute affected repos** — It runs `flywork dag affected --from <trigger-repo> --json`, which returns every repo that transitively depends on the trigger repo. For example, if `fireflyframework-utils` is the trigger, the affected set includes everything from layer 2 through layer 5.
+2. **Compute affected repos** — It runs `flywork dag affected --from <trigger-repo> --json`, which returns every repo that transitively depends on the trigger repo. For example, if `fireflyframework-utils` is the trigger, the affected set includes everything from layer 2 through layer 5. If `build-all` is true, it exports the entire DAG instead.
 
-3. **Dispatch workflows** — For each affected repo, it dispatches either `ci.yml` (on develop) or `release.yml` (on main), depending on the `mode` input.
+3. **Dispatch workflows** — For each affected repo, it dispatches either `ci.yml` (on develop) or `release.yml` (on main), depending on the `mode` input. All dispatches happen in parallel via a GitHub Actions matrix.
+
+### Permissions and Tokens
+
+The DAG orchestrator defines its own permissions block:
+
+```yaml
+permissions:
+  contents: read   # reading the CLI repo
+  actions: write   # dispatching workflows in other repos
+```
+
+For the actual cross-repo dispatches, it uses `secrets.ORG_DISPATCH_TOKEN`. The default `GITHUB_TOKEN` cannot dispatch workflows in other repos — it is scoped to the repo where the workflow runs (the `.github` repo in this case).
 
 ### Inputs
 
@@ -439,11 +492,18 @@ on:
     branches: [develop]
   pull_request:
     branches: [develop, main]
+  workflow_dispatch:
+    inputs:
+      triggered-by:
+        description: 'Orchestrator run ID'
+        required: false
+        type: string
 
 jobs:
-  ci:
+  build:
     uses: fireflyframework/.github/.github/workflows/java-ci.yml@main
-    secrets: inherit
+    with:
+      java-version: '25'
 ```
 
 **Go repo:**
@@ -456,10 +516,18 @@ on:
     branches: [develop]
   pull_request:
     branches: [develop, main]
+  workflow_dispatch:
+    inputs:
+      triggered-by:
+        description: 'Orchestrator run ID'
+        required: false
+        type: string
 
 jobs:
-  ci:
+  build-and-test:
     uses: fireflyframework/.github/.github/workflows/go-ci.yml@main
+    with:
+      go-version: '1.25'
     secrets: inherit
 ```
 
@@ -477,10 +545,11 @@ on:
 jobs:
   lint-and-test:
     uses: fireflyframework/.github/.github/workflows/python-ci.yml@main
-    secrets: inherit
+    with:
+      python-version: '3.13'
 ```
 
-That is the entire file. All build logic is in the shared workflow.
+> **Note:** Java repos do not need `secrets: inherit` because `GITHUB_TOKEN` is automatically available and `ORG_DISPATCH_TOKEN` is an org secret with `all` visibility. Go repos include `secrets: inherit` as a safety measure. Python repos (currently `fireflyframework-genai`) are not part of the Java DAG and do not trigger the cascade, so they do not need the `workflow_dispatch` trigger or `ORG_DISPATCH_TOKEN`.
 
 ### Step 3: Create the Release Workflow
 
@@ -495,15 +564,20 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      triggered-by:
+        description: 'Orchestrator run ID'
+        required: false
+        type: string
 
 jobs:
   release:
     uses: fireflyframework/.github/.github/workflows/java-release.yml@main
-    secrets: inherit
+    with:
+      java-version: '25'
     permissions:
       contents: write
       packages: write
-      actions: write
 ```
 
 **Go repo:**
@@ -515,15 +589,21 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      triggered-by:
+        description: 'Orchestrator run ID'
+        required: false
+        type: string
 
 jobs:
   release:
     uses: fireflyframework/.github/.github/workflows/go-release.yml@main
-    secrets: inherit
+    with:
+      go-version: '1.25'
+      binary-name: your-binary-name
     permissions:
       contents: write
-    with:
-      binary-name: your-binary-name
+    secrets: inherit
 ```
 
 **Python repo:**
@@ -652,7 +732,7 @@ When a tag like `v26.02.01` is pushed to `fireflyframework-utils`:
    - Runs `mvn deploy` to publish the JAR and POM to GitHub Packages
    - Reads the version from `pom.xml` (e.g., `26.02.01`)
    - Creates a GitHub Release named `v26.02.01` with auto-generated notes
-   - Dispatches the DAG orchestrator with `mode=release` to cascade to downstream repos
+   - Uses `ORG_DISPATCH_TOKEN` to dispatch the DAG orchestrator with `mode=release` to cascade to downstream repos
 4. The DAG orchestrator computes affected repos and dispatches `release.yml` on `main` for each
 5. Each downstream repo repeats steps 1-4, cascading further until leaf repos are reached
 
@@ -808,6 +888,9 @@ All Firefly Framework repositories follow a simple two-branch model:
 4. **Wrong version** — The POM references a version that does not exist in the registry.
    → Fix: Run `mvn -U verify` to force Maven to re-check remote repos.
 
+5. **Cached resolution failure** — Maven caches failed dependency lookups in `.lastUpdated` files. If a dependency failed to resolve once (e.g., during a fresh `flywork setup` before all layers were installed), Maven remembers the failure and does not retry.
+   → Fix: Run `mvn -U verify` (the `-U` flag forces Maven to re-check remote repos) or delete the `.lastUpdated` files from `~/.m2/repository/`.
+
 ### 409 Conflict on Deploy
 
 **What you see:** `status code: 409, reason phrase: Conflict`
@@ -832,16 +915,15 @@ All Firefly Framework repositories follow a simple two-branch model:
 
 **Common causes:**
 
-1. **Missing `secrets: inherit`** in the caller workflow — the shared workflow cannot access `GITHUB_TOKEN`.
-2. **Missing permissions block** in the caller workflow — add the required permissions:
+1. **Missing permissions block** in the caller workflow — add the required permissions:
    ```yaml
+   # For release workflows:
    permissions:
      contents: write    # creating releases and tags
      packages: write    # publishing artifacts
-     actions: write     # dispatching DAG orchestrator
    ```
-3. **Organization-level restrictions** — Go to Organization Settings → Actions → General → Workflow permissions and select "Read and write permissions."
-4. **Cross-repo dispatch** — The DAG orchestrator dispatches workflows in other repos. This requires the `GITHUB_TOKEN` to have `actions: write` permission and the organization to allow cross-repo workflow dispatch. If using a fine-grained PAT instead of `GITHUB_TOKEN`, it needs explicit repo access.
+2. **Organization-level restrictions** — Go to Organization Settings → Actions → General → Workflow permissions and select "Read and write permissions."
+3. **Cross-repo dispatch failed** — The DAG orchestrator and shared workflows use `ORG_DISPATCH_TOKEN` (an org-level PAT) for cross-repo dispatch. If this token is missing, expired, or does not have sufficient permissions, cascade triggers will fail silently (the workflow logs a warning instead of failing the build). Check the org secret at Organization Settings → Secrets and variables → Actions → `ORG_DISPATCH_TOKEN`.
 
 ### Build Order Issues
 
@@ -869,6 +951,23 @@ uv run ruff format .
 
 Commit and push the fixes.
 
+### GenAI Pyright Hangs or Times Out
+
+**What you see:** The "Type check with pyright" step runs for 10+ minutes and then times out, or the CI job hits the 15-minute job timeout.
+
+**Why it happens:** Pyright can hang when misconfigured `venvPath`/`venv` settings in `pyproject.toml` conflict with `uv run`'s virtual environment management.
+
+**Current behavior:** The `pyright` step has `continue-on-error: true` and a `timeout-minutes: 10` limit. If pyright fails or times out, the workflow continues to run tests. This is intentional — type checking is non-blocking while the codebase incrementally improves type coverage.
+
+**To fix pyright issues:** Ensure `pyproject.toml` does not set `venvPath` or `venv` under `[tool.pyright]`. Use `include` to scope type checking to source directories:
+
+```toml
+[tool.pyright]
+pythonVersion = "3.13"
+typeCheckingMode = "basic"
+include = ["src"]
+```
+
 ### Tests Pass Locally but Fail in CI
 
 **Possible causes:**
@@ -893,6 +992,16 @@ Commit and push the fixes.
 **Possible causes:**
 1. **It was a PR, not a push** — The cascade only triggers on `push` events (merges to develop), not on pull requests.
 2. **`trigger-downstream` is set to `false`** — Check the caller workflow's `with:` block.
-3. **Missing `actions: write` permission** — The workflow needs permission to dispatch the DAG orchestrator.
+3. **`ORG_DISPATCH_TOKEN` is missing or expired** — The cascade dispatch uses the `ORG_DISPATCH_TOKEN` org secret, not `GITHUB_TOKEN`. If this token is missing, expired, or lacks permissions, the dispatch step will log a warning but not fail the build. Check the org secret at Organization Settings → Secrets and variables → Actions.
 4. **The repo is not in the DAG** — Run `flywork dag affected --from <repo-name>` to check if it has any downstream dependents. If the repo is not registered in `internal/dag/graph.go`, the DAG does not know about it.
-5. **Cross-repo dispatch failed** — The `GITHUB_TOKEN` may not have permission to trigger workflows in the `.github` repo. Check the workflow logs for a warning message.
+5. **The downstream repo is missing `workflow_dispatch` trigger** — The DAG orchestrator dispatches downstream repos via `workflow_dispatch`. If a repo's `ci.yml` does not have the `workflow_dispatch` trigger, the dispatch will fail silently.
+
+---
+
+## CI Status Dashboard
+
+A live build status dashboard for all 40 repositories is available at:
+
+**[CI Status Dashboard](CI_STATUS.md)**
+
+The dashboard shows every repo grouped by category (Foundation, Core Modules, Data & Persistence, etc.) with descriptions and CI badge status. Use it to quickly check which repos are passing and which need attention.
