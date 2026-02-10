@@ -60,6 +60,7 @@ jobs:
           EOF
 
       - name: Deploy to GitHub Packages
+        continue-on-error: true
         run: |
           mvn -B deploy -P release -DskipTests \
             -DaltDeploymentRepository=github::https://maven.pkg.github.com/${{ github.repository }}
