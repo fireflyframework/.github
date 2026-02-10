@@ -60,10 +60,17 @@ jobs:
           EOF
 
       - name: Deploy to GitHub Packages
-        continue-on-error: true
         run: |
           mvn -B deploy -P release -DskipTests \
-            -DaltDeploymentRepository=github::https://maven.pkg.github.com/${{ github.repository }}
+            -DaltDeploymentRepository=github::https://maven.pkg.github.com/${{ github.repository }} \
+            2>&1 | tee /tmp/mvn-deploy.log || {
+              if grep -q "status code: 409" /tmp/mvn-deploy.log; then
+                echo "::warning::Artifact version already exists in GitHub Packages (409 Conflict) — skipping deploy"
+              else
+                echo "::error::Maven deploy failed with a non-409 error"
+                exit 1
+              fi
+            }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

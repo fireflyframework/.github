@@ -58,15 +58,35 @@ Four project archetypes are available: **core**, **domain**, **application**, an
 
 ### Quick Start (Maven)
 
+Firefly Framework artifacts are published to **GitHub Packages**. You need to configure Maven with a GitHub Personal Access Token before adding dependencies. See the [Getting Started Guide](https://github.com/fireflyframework/.github/blob/main/docs/GETTING_STARTED.md) for step-by-step instructions.
+
+Once configured, inherit the parent POM:
+
 ```xml
 <parent>
     <groupId>org.fireflyframework</groupId>
     <artifactId>fireflyframework-parent</artifactId>
     <version>26.01.01</version>
+    <relativePath/>
 </parent>
 ```
 
-Then pick the modules you need. See the [full module catalog and getting started guide](https://github.com/fireflyframework/.github/blob/main/docs/MODULE_CATALOG.md) for details.
+Then add the modules you need -- no version tags required:
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.fireflyframework</groupId>
+        <artifactId>fireflyframework-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.fireflyframework</groupId>
+        <artifactId>fireflyframework-r2dbc</artifactId>
+    </dependency>
+</dependencies>
+```
+
+See the [Module Catalog](https://github.com/fireflyframework/.github/blob/main/docs/MODULE_CATALOG.md) for the full list of available modules.
 
 ### GenAI
 
@@ -76,10 +96,11 @@ Firefly Framework also provides **[fireflyframework-genai](https://github.com/fi
 curl -fsSL https://raw.githubusercontent.com/fireflyframework/fireflyframework-genai/main/install.sh | bash
 ```
 
-### CI/CD & Developer Guides
+### Guides & Documentation
 
-- [Module Catalog](https://github.com/fireflyframework/.github/blob/main/docs/MODULE_CATALOG.md)
-- [CI/CD Configuration Guide](https://github.com/fireflyframework/.github/blob/main/docs/CI_CD_GUIDE.md)
+- [Getting Started Guide](https://github.com/fireflyframework/.github/blob/main/docs/GETTING_STARTED.md) -- Configure GitHub Packages, create your first project, and start building
+- [Module Catalog](https://github.com/fireflyframework/.github/blob/main/docs/MODULE_CATALOG.md) -- Complete reference of all framework modules
+- [CI/CD Configuration Guide](https://github.com/fireflyframework/.github/blob/main/docs/CI_CD_GUIDE.md) -- Shared workflows, release process, and troubleshooting
 
 ### License
 
