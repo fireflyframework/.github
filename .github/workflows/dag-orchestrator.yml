@@ -21,6 +21,10 @@ on:
           - ci
           - release
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   plan:
     runs-on: ubuntu-latest
@@ -86,7 +90,7 @@ jobs:
 
       - name: Trigger ${{ inputs.mode }} on ${{ matrix.repo }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ORG_DISPATCH_TOKEN }}
         run: |
           gh api \
             --method POST \

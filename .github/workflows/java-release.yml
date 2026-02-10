@@ -17,10 +17,6 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -97,7 +93,7 @@ jobs:
       - name: Trigger downstream releases via DAG orchestrator
         if: success() && inputs.trigger-downstream
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ORG_DISPATCH_TOKEN }}
         run: |
           REPO_NAME="${{ github.event.repository.name }}"
           echo "Triggering DAG orchestrator to release downstream repos of ${REPO_NAME}..."
