@@ -14,7 +14,14 @@ _/ ____\___________    _____   ______  _  _____________|  | __
  --------------------------> Enterprise software made easy  <-
 ```
 
-[![CI](https://github.com/fireflyframework/fireflyframework-core/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-core/actions/workflows/ci.yml)
+[![core](https://github.com/fireflyframework/fireflyframework-core/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-core/actions/workflows/ci.yml)
+[![parent](https://github.com/fireflyframework/fireflyframework-parent/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-parent/actions/workflows/ci.yml)
+[![domain](https://github.com/fireflyframework/fireflyframework-domain/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-domain/actions/workflows/ci.yml)
+[![data](https://github.com/fireflyframework/fireflyframework-data/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-data/actions/workflows/ci.yml)
+[![web](https://github.com/fireflyframework/fireflyframework-web/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-web/actions/workflows/ci.yml)
+[![eda](https://github.com/fireflyframework/fireflyframework-eda/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-eda/actions/workflows/ci.yml)
+[![cli](https://github.com/fireflyframework/fireflyframework-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-cli/actions/workflows/ci.yml)
+[![genai](https://github.com/fireflyframework/fireflyframework-genai/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-genai/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **Enterprise-grade reactive framework with distributed transactions, event-driven patterns, and battle-tested reliability.**
