@@ -266,7 +266,7 @@ Suppose you fix a bug in `fireflyframework-utils`. That repo has 30+ downstream 
 
 ### How the Cascade Works — CI Mode
 
-Here is the exact sequence of events when you push a commit to `develop` on `fireflyframework-utils`:
+To illustrate, let's walk through what happens when you push a commit to `develop` on any Java repo — using `fireflyframework-utils` as an example:
 
 ```
 1. Push to develop on fireflyframework-utils
@@ -305,7 +305,7 @@ Here is the exact sequence of events when you push a commit to `develop` on `fir
 
 ### How the Cascade Works — Release Mode
 
-When you release a repo, the cascade works the same way but triggers `release.yml` instead of `ci.yml`:
+When you release a repo, the cascade works the same way but triggers `release.yml` instead of `ci.yml`. Continuing with `fireflyframework-utils` as an example:
 
 ```
 1. Release succeeds on fireflyframework-utils (artifacts published, GitHub Release created)
