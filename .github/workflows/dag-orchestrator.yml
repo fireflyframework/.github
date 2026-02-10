@@ -1,0 +1,68 @@
+name: DAG Orchestrator
+
+on:
+  workflow_dispatch:
+    inputs:
+      trigger-repo:
+        description: 'Repository that triggered the build (e.g., fireflyframework-cache)'
+        required: true
+        type: string
+      build-all:
+        description: 'Build all repos regardless of changes'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      affected: ${{ steps.affected.outputs.repos }}
+      layers: ${{ steps.affected.outputs.layers }}
+    steps:
+      - name: Checkout CLI
+        uses: actions/checkout@v4
+        with:
+          repository: fireflyframework/fireflyframework-cli
+          ref: develop
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build CLI
+        run: go build -o flywork .
+
+      - name: Compute affected repos
+        id: affected
+        run: |
+          if [ "${{ inputs.build-all }}" = "true" ]; then
+            REPOS=$(./flywork dag export --json | jq -c '.layers')
+            echo "repos=$(./flywork dag export --json | jq -c '[.layers[][]]')" >> "$GITHUB_OUTPUT"
+            echo "layers=$REPOS" >> "$GITHUB_OUTPUT"
+          else
+            AFFECTED=$(./flywork dag affected --from "${{ inputs.trigger-repo }}" --json)
+            echo "repos=$(echo "$AFFECTED" | jq -c '.affected')" >> "$GITHUB_OUTPUT"
+            echo "layers=[]" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.affected != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: ${{ fromJson(needs.plan.outputs.affected) }}
+      fail-fast: false
+    steps:
+      - name: Trigger CI on ${{ matrix.repo }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            repos/fireflyframework/${{ matrix.repo }}/actions/workflows/ci.yml/dispatches \
+            -f ref=develop \
+            -f "inputs[triggered-by]=${{ github.run_id }}" || true
