@@ -322,7 +322,20 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release delete "v${{ steps.version.outputs.version }}" --yes --cleanup-tag 2>/dev/null || true
+          # Delete only the release, NOT the tag (--cleanup-tag would delete the tag
+          # and cause softprops/action-gh-release to fail with "Too many retries")
+          gh release delete "v${{ steps.version.outputs.version }}" --yes 2>/dev/null || true
+
+      - name: Ensure tag exists
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists"
+          else
+            echo "Creating tag $TAG on HEAD"
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
