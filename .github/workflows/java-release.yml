@@ -125,7 +125,8 @@ jobs:
 
       - name: Deploy to GitHub Packages
         run: |
-          mvn -B deploy -P release -DskipTests \
+          set -o pipefail
+          mvn -B -U deploy -P release -DskipTests \
             -DaltDeploymentRepository=github::https://maven.pkg.github.com/${{ github.repository }} \
             2>&1 | tee /tmp/mvn-deploy.log || {
               if grep -q "status code: 409" /tmp/mvn-deploy.log; then
@@ -228,7 +229,8 @@ jobs:
 
       - name: Deploy to Maven Central
         run: |
-          mvn -B deploy -P release,maven-central -DskipTests \
+          set -o pipefail
+          mvn -B -U deploy -P release,maven-central -DskipTests \
             2>&1 | tee /tmp/mvn-central.log || {
               if grep -qiE "status: 400|already published|already exists|duplicate|content already exists|Deployment.*already|is not allowed" /tmp/mvn-central.log; then
                 echo "::warning::Artifact version already exists on Maven Central (immutable) — this is expected for re-releases"
