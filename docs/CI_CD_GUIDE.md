@@ -47,8 +47,7 @@ Here is what the architecture looks like:
 │ ├── go-release.yml Shared release for Go repos │
 │ ├── python-ci.yml Shared CI for Python repos │
 │ ├── python-release.yml Shared release for Python repos │
-│ ├── dag-orchestrator.yml Cross-repo cascade coordinator │
-│ └── dependabot-auto-merge.yml Auto-merge patch/minor Dependabot │
+│ └── dag-orchestrator.yml Cross-repo cascade coordinator │
 └─────────────────────────────────────────────────────────────────────┘
                             ▲
                             │ workflow_call (reusable workflow)
@@ -179,7 +178,7 @@ Two tokens are used in the CI/CD system:
 | Checkout | Clones the repo | Self-explanatory — we need the source code |
 | Set up JDK | Installs Temurin JDK with Maven cache | Temurin is the community OpenJDK build. Maven caching saves 30-60s per build by reusing downloaded dependencies |
 | Configure GitHub Packages | Writes `~/.m2/settings.xml` | Maven needs credentials to download framework dependencies from GitHub Packages — even reading public packages requires authentication |
-| Build with Maven | Runs `mvn -B verify` | The `-B` flag suppresses download progress noise. `verify` compiles, tests, and checks the project without deploying |
+| Build with Maven | Runs `mvn -B -U verify` | `-B` suppresses download progress noise. `-U` forces Maven to re-check remote repositories for updated dependencies, preventing stale cache failures. `verify` compiles, tests, and checks the project without deploying |
 | Upload test reports | Saves Surefire/Failsafe reports as artifacts | Even if the build fails, test reports are preserved for 7 days so you can debug failures without re-running |
 | Trigger downstream CI | Dispatches the DAG orchestrator using `ORG_DISPATCH_TOKEN` | **This is the cascade trigger.** After a successful push build, the system automatically rebuilds all repos that depend on this one |
 
@@ -207,7 +206,7 @@ Two tokens are used in the CI/CD system:
 | Checkout | Clones the repo | Need source code to build the artifact |
 | Set up JDK | Installs Temurin JDK | Same as CI |
 | Configure GitHub Packages | Writes `~/.m2/settings.xml` | Needs write credentials to publish artifacts |
-| Deploy to GitHub Packages | Runs `mvn deploy` with 409 handling | Compiles, packages, and uploads the JAR/POM to the GitHub Packages Maven registry. Tests are skipped because CI already validated them |
+| Deploy to GitHub Packages | Runs `mvn deploy` with `set -o pipefail`, `-U` flag, and 409 handling | Compiles, packages, and uploads the JAR/POM to the GitHub Packages Maven registry. `set -o pipefail` ensures Maven failures are not masked when piping to `tee`. `-U` forces dependency re-resolution so freshly-published upstream packages are picked up. Tests are skipped because CI already validated them |
 | Extract version | Reads version from POM | The `softprops/action-gh-release` action needs to know the version to create the tag and name the release |
 | Create GitHub Release | Uses `softprops/action-gh-release@v2` | Creates a tagged release on GitHub with auto-generated release notes. The `tag_name` is set explicitly because when triggered via `workflow_dispatch` there is no tag in `GITHUB_REF` |
 | Trigger downstream releases | Dispatches DAG orchestrator using `ORG_DISPATCH_TOKEN` | **After this repo is released, all its downstream dependents are also released.** This is how a single release cascades through the entire dependency graph |
@@ -219,11 +218,13 @@ Two tokens are used in the CI/CD system:
 | `java-version` | string | `25` | JDK version |
 | `trigger-downstream` | boolean | `true` | Whether to cascade releases to downstream repos |
 
-**Permissions required (on caller workflow):** `contents: write` (creating releases/tags) + `packages: write` (publishing artifacts)
+**Permissions required (on caller workflow):** `contents: write` (creating releases/tags) + `packages: write` (publishing artifacts) + `actions: write` (dispatching downstream workflows)
 
 **Cross-repo dispatch:** Same as `java-ci.yml` — uses `secrets.ORG_DISPATCH_TOKEN` to dispatch the DAG orchestrator.
 
-**409 Conflict handling:** GitHub Packages does not allow overwriting existing versions. When you re-run a release for a version that was already published, the deploy step will get a 409 error. The workflow detects this specifically — if the error is a 409, it logs a warning and continues to the GitHub Release step (which is usually why you are re-running). If the error is anything else, the workflow fails.
+**Dual publish:** The release workflow publishes to both GitHub Packages and Maven Central in parallel jobs. Both deploy steps use `set -o pipefail` to ensure Maven failures are properly detected even when output is piped through `tee` for log capture. Both use the `-U` flag to force dependency re-resolution.
+
+**409 Conflict handling:** GitHub Packages does not allow overwriting existing versions. When you re-run a release for a version that was already published, the deploy step will get a 409 error. The workflow detects this specifically — if the error is a 409, it logs a warning and continues to the GitHub Release step (which is usually why you are re-running). If the error is anything else, the workflow fails. The workflow also supports re-publishing by deleting existing package versions before deploying.
 
 ### `go-ci.yml` — Go CI
 
@@ -263,24 +264,6 @@ Uses `uv` as the package manager (via `astral-sh/setup-uv@v4`) for fast dependen
 ### `python-release.yml` — Python Release
 
 **What it does:** Builds a Python package (wheel + sdist) using `uv build` and creates a GitHub Release with the distribution files attached.
-
-### `dependabot-auto-merge.yml` — Dependabot Auto-Merge
-
-**What it does:** Automatically approves and squash-merges Dependabot pull requests for **patch** and **minor** version updates. Major version updates are left for manual review.
-
-**Trigger:** `on: pull_request` — runs on every PR but immediately exits unless `github.actor == 'dependabot[bot]'`.
-
-**Steps:**
-
-| Step | What it does | Why |
-|------|-------------|-----|
-| Fetch Dependabot metadata | Reads the update type (patch/minor/major) | Uses `dependabot/fetch-metadata@v2` to determine the semver update category |
-| Approve | Approves the PR via `gh pr review --approve` | Only for patch and minor updates — low-risk changes that rarely break anything |
-| Auto-merge | Merges the PR via `gh pr merge --auto --squash` | Squash merge keeps the commit history clean. `--auto` waits for required status checks to pass before merging |
-
-**Permissions:** `contents: write` + `pull-requests: write`
-
-> **Note:** This workflow is defined in the `.github` repo and applies to all repositories in the organization via GitHub's default community health file mechanism. Individual repos do not need their own copy.
 
 ### `dag-orchestrator.yml` — Cross-Repo Cascade Coordinator
 
@@ -381,6 +364,8 @@ jobs:
     permissions:
       contents: write
       packages: write
+      actions: write
+    secrets: inherit
 ```
 
 ---
@@ -578,6 +563,8 @@ jobs:
     permissions:
       contents: write
       packages: write
+      actions: write
+    secrets: inherit
 ```
 
 **Go repo:**
@@ -646,12 +633,11 @@ If the new repo depends on other framework modules (or other modules depend on i
 
 ### What It Is and Why We Use It
 
-GitHub Packages is a package registry hosted by GitHub. We publish all Maven artifacts there instead of Maven Central.
+GitHub Packages is a package registry hosted by GitHub. We publish all Maven artifacts to **both** GitHub Packages and Maven Central. GitHub Packages is the primary registry used by the framework's own CI/CD system, while Maven Central provides public availability for external consumers.
 
-**Why not Maven Central?**
-- Maven Central requires a complex publishing process (GPG signing, Sonatype staging, manual review for first-time publishers)
-- GitHub Packages is integrated directly with GitHub Actions — the `GITHUB_TOKEN` that every workflow already has is all you need
-- Package visibility is tied to repository visibility, so organization-level access control is automatic
+**Why both?**
+- **GitHub Packages** is integrated directly with GitHub Actions — the `GITHUB_TOKEN` that every workflow already has is all you need. It is used for dependency resolution during CI and releases within the framework.
+- **Maven Central** provides public, unauthenticated access for external consumers who depend on Firefly Framework modules.
 
 **The main tradeoff:** Unlike Maven Central, GitHub Packages requires authentication even for *reading* public packages. This means every developer needs a Personal Access Token configured in their `~/.m2/settings.xml`. See the [Getting Started Guide](GETTING_STARTED.md) for how to set this up.
 
@@ -660,16 +646,21 @@ GitHub Packages is a package registry hosted by GitHub. We publish all Maven art
 When the release workflow runs, it executes:
 
 ```bash
-mvn -B deploy -P release -DskipTests \
-  -DaltDeploymentRepository=github::https://maven.pkg.github.com/fireflyframework/<repo-name>
+set -o pipefail
+mvn -B -U deploy -P release -DskipTests \
+  -DaltDeploymentRepository=github::https://maven.pkg.github.com/fireflyframework/<repo-name> \
+  2>&1 | tee /tmp/mvn-deploy.log
 ```
 
 Breaking this down:
+- `set -o pipefail` — Ensures that if `mvn` fails, the pipeline exit code reflects that failure even when piped through `tee`
 - `-B` — Batch mode, no interactive prompts or download progress bars
+- `-U` — Forces Maven to re-check remote repositories for updated dependencies, ensuring freshly-published upstream packages are resolved
 - `deploy` — The full Maven lifecycle: compile → test (skipped) → package → install → deploy
 - `-P release` — Activates the `release` Maven profile if defined in the POM
 - `-DskipTests` — Tests are skipped because CI already validated them on `develop`
 - `-DaltDeploymentRepository` — Overrides `<distributionManagement>` in the POM to point to the correct per-repo GitHub Packages URL
+- `2>&1 | tee /tmp/mvn-deploy.log` — Captures full output for error analysis (409 detection) while still streaming to stdout
 
 ### How Artifacts Are Consumed
 
@@ -758,7 +749,7 @@ gh workflow run dag-orchestrator.yml \
 **Using the CLI to publish locally:**
 
 ```bash
-export GITHUB_TOKEN=ghp_your_token
+export GITHUB_TOKEN=<your-personal-access-token>
 flywork publish --all
 ```
 
@@ -919,8 +910,9 @@ All Firefly Framework repositories follow a simple two-branch model:
    ```yaml
    # For release workflows:
    permissions:
-     contents: write # creating releases and tags
-     packages: write # publishing artifacts
+     contents: write  # creating releases and tags
+     packages: write  # publishing artifacts
+     actions: write   # dispatching downstream workflows
    ```
 2. **Organization-level restrictions** — Go to Organization Settings → Actions → General → Workflow permissions and select "Read and write permissions."
 3. **Cross-repo dispatch failed** — The DAG orchestrator and shared workflows use `ORG_DISPATCH_TOKEN` (an org-level PAT) for cross-repo dispatch. If this token is missing, expired, or does not have sufficient permissions, cascade triggers will fail silently (the workflow logs a warning instead of failing the build). Check the org secret at Organization Settings → Secrets and variables → Actions → `ORG_DISPATCH_TOKEN`.
