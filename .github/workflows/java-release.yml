@@ -61,13 +61,66 @@ jobs:
           </settings>
           EOF
 
+      - name: Extract version
+        id: project-info
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete existing package versions (re-publish support)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.ORG_DISPATCH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.project-info.outputs.version }}"
+          ORG="fireflyframework"
+          REPO="${{ github.event.repository.name }}"
+          echo "Checking for existing v${VERSION} packages to enable fresh re-publish..."
+
+          # Collect artifact IDs this project produces
+          ARTIFACT_IDS="$REPO"
+
+          # For multi-module projects, also collect sub-module artifact IDs
+          MODULES=$(mvn -B help:evaluate -N -Dexpression=project.modules -q -DforceStdout 2>/dev/null || echo "")
+          if [ -n "$MODULES" ] && [ "$MODULES" != "null" ] && [ "$MODULES" != "[]" ]; then
+            for MODULE_DIR in $(echo "$MODULES" | tr -d '[]' | tr ',' '\n' | tr -d ' '); do
+              if [ -d "$MODULE_DIR" ] && [ -f "$MODULE_DIR/pom.xml" ]; then
+                MOD_AID=$(mvn -B help:evaluate -pl "$MODULE_DIR" -Dexpression=project.artifactId -q -DforceStdout 2>/dev/null || true)
+                if [ -n "$MOD_AID" ]; then
+                  ARTIFACT_IDS="$ARTIFACT_IDS $MOD_AID"
+                fi
+              fi
+            done
+          fi
+
+          echo "Artifacts to clean: $ARTIFACT_IDS"
+          DELETED=0
+          for AID in $ARTIFACT_IDS; do
+            PKG_NAME="org.fireflyframework.${AID}"
+            VER_ID=$(gh api "orgs/${ORG}/packages/maven/${PKG_NAME}/versions" \
+              --jq ".[] | select(.name == \"${VERSION}\") | .id" 2>/dev/null || true)
+            if [ -n "$VER_ID" ]; then
+              echo "  Deleting ${PKG_NAME} v${VERSION} (ID: ${VER_ID})..."
+              gh api --method DELETE "orgs/${ORG}/packages/maven/${PKG_NAME}/versions/${VER_ID}" 2>/dev/null && DELETED=$((DELETED + 1)) || true
+            fi
+          done
+
+          if [ "$DELETED" -gt 0 ]; then
+            echo "Deleted $DELETED existing package version(s) — fresh deploy will proceed"
+          else
+            echo "No existing versions found — first-time publish"
+          fi
+
       - name: Deploy to GitHub Packages
         run: |
           mvn -B deploy -P release -DskipTests \
             -DaltDeploymentRepository=github::https://maven.pkg.github.com/${{ github.repository }} \
             2>&1 | tee /tmp/mvn-deploy.log || {
               if grep -q "status code: 409" /tmp/mvn-deploy.log; then
-                echo "::warning::Artifact version already exists in GitHub Packages (409 Conflict) — skipping deploy"
+                echo "::warning::Artifact version already exists in GitHub Packages (409 Conflict) — some artifacts may not have been re-published"
               else
                 echo "::error::Maven deploy failed with a non-409 error"
                 exit 1
@@ -136,12 +189,40 @@ jobs:
       - name: Clear cached parent POM
         run: rm -rf ~/.m2/repository/org/fireflyframework
 
+      - name: Drop pending Sonatype deployments (re-publish support)
+        continue-on-error: true
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        run: |
+          echo "Checking for pending/failed Sonatype deployments to clean up..."
+          DEPLOYMENTS=$(curl -sf -u "${SONATYPE_USERNAME}:${SONATYPE_PASSWORD}" \
+            "https://central.sonatype.com/api/v1/publisher/published?namespace=org.fireflyframework&version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" \
+            2>/dev/null || echo "")
+          if [ -n "$DEPLOYMENTS" ] && echo "$DEPLOYMENTS" | grep -qi "published"; then
+            echo "Version already published on Maven Central — deploy will be skipped gracefully"
+          else
+            # Try to find and drop any PENDING/FAILED/VALIDATING deployments
+            PENDING=$(curl -sf -u "${SONATYPE_USERNAME}:${SONATYPE_PASSWORD}" \
+              "https://central.sonatype.com/api/v1/publisher/deployments" 2>/dev/null || echo "[]")
+            if [ "$PENDING" != "[]" ] && [ -n "$PENDING" ]; then
+              echo "$PENDING" | jq -r '.[] | select(.deploymentState != "PUBLISHED") | .deploymentId' 2>/dev/null | while read DEP_ID; do
+                if [ -n "$DEP_ID" ]; then
+                  echo "  Dropping pending deployment ${DEP_ID}..."
+                  curl -sf -X DELETE -u "${SONATYPE_USERNAME}:${SONATYPE_PASSWORD}" \
+                    "https://central.sonatype.com/api/v1/publisher/deployment/${DEP_ID}" 2>/dev/null || true
+                fi
+              done
+            fi
+            echo "Sonatype cleanup complete"
+          fi
+
       - name: Deploy to Maven Central
         run: |
           mvn -B deploy -P release,maven-central -DskipTests \
             2>&1 | tee /tmp/mvn-central.log || {
-              if grep -qiE "status: 400|already published|already exists|duplicate|content already exists" /tmp/mvn-central.log; then
-                echo "::warning::Artifact version already exists on Maven Central — skipping deploy"
+              if grep -qiE "status: 400|already published|already exists|duplicate|content already exists|Deployment.*already|is not allowed" /tmp/mvn-central.log; then
+                echo "::warning::Artifact version already exists on Maven Central (immutable) — this is expected for re-releases"
               else
                 echo "::error::Maven Central deploy failed"
                 exit 1
@@ -210,6 +291,13 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete existing GitHub Release (re-publish support)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete "v${{ steps.version.outputs.version }}" --yes --cleanup-tag 2>/dev/null || true
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
