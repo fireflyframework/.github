@@ -133,6 +133,9 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
+      - name: Clear cached parent POM
+        run: rm -rf ~/.m2/repository/org/fireflyframework
+
       - name: Deploy to Maven Central
         run: |
           mvn -B deploy -P release,maven-central -DskipTests
