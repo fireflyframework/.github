@@ -317,33 +317,46 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete existing GitHub Release (re-publish support)
-        continue-on-error: true
+      - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Delete only the release, NOT the tag (--cleanup-tag would delete the tag
-          # and cause softprops/action-gh-release to fail with "Too many retries")
-          gh release delete "v${{ steps.version.outputs.version }}" --yes 2>/dev/null || true
-
-      - name: Ensure tag exists
-        run: |
           TAG="v${{ steps.version.outputs.version }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists"
-          else
-            echo "Creating tag $TAG on HEAD"
-            git tag "$TAG"
-            git push origin "$TAG"
-          fi
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: v${{ steps.version.outputs.version }}
-          generate_release_notes: true
-          make_latest: true
+          # Delete existing release if present (tag is always preserved)
+          gh release delete "$TAG" --yes 2>/dev/null || true
+
+          # Allow GitHub API to settle after deletion
+          sleep 2
+
+          # Create release with retries — handles race conditions from concurrent
+          # DAG-triggered runs where multiple workflows target the same tag
+          for ATTEMPT in 1 2 3; do
+            if gh release create "$TAG" \
+              --title "$TAG" \
+              --generate-notes \
+              --latest \
+              --target "${{ github.sha }}" 2>/dev/null; then
+              echo "Release $TAG created successfully"
+              exit 0
+            fi
+
+            # If creation failed, check if another concurrent run already created it
+            if gh release view "$TAG" >/dev/null 2>&1; then
+              echo "Release $TAG already exists (created by a concurrent run) — OK"
+              exit 0
+            fi
+
+            echo "Attempt $ATTEMPT failed, retrying in 3s..."
+            sleep 3
+          done
+
+          # Final check — release may have been created by another run
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG exists — OK"
+          else
+            echo "::warning::Could not create release $TAG after 3 attempts"
+          fi
 
       - name: Trigger downstream releases via DAG orchestrator
         if: inputs.trigger-downstream
