@@ -33,7 +33,7 @@ jobs:
       layers: ${{ steps.affected.outputs.layers }}
     steps:
       - name: Checkout CLI
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: fireflyframework/fireflyframework-cli
           ref: develop
