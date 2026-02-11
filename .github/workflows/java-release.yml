@@ -72,7 +72,7 @@ jobs:
       - name: Delete existing package versions (re-publish support)
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ORG_DISPATCH_TOKEN }}
         run: |
           VERSION="${{ steps.project-info.outputs.version }}"
           ORG="${{ github.repository_owner }}"
@@ -90,6 +90,7 @@ jobs:
           fi
 
           DELETED=0
+          FAILED=0
           for PKG_NAME in $PACKAGES; do
             # Extract artifact ID from package name (remove org.fireflyframework. prefix)
             ARTIFACT="${PKG_NAME#org.fireflyframework.}"
@@ -106,10 +107,15 @@ jobs:
                   "orgs/${ORG}/packages/maven/${PKG_ENC}/versions/${VER_ID}" 2>&1 || true)
                 if echo "$DELETE_RESULT" | grep -qi "last version\|delete the package instead"; then
                   echo "    Only version in package — deleting entire package..."
-                  gh api --method DELETE "orgs/${ORG}/packages/maven/${PKG_ENC}" 2>/dev/null \
-                    && DELETED=$((DELETED + 1)) || echo "    Warning: could not delete package (may need delete:packages scope on ORG_DISPATCH_TOKEN)"
+                  if gh api --method DELETE "orgs/${ORG}/packages/maven/${PKG_ENC}" 2>/dev/null; then
+                    DELETED=$((DELETED + 1))
+                  else
+                    echo "    Warning: could not delete package"
+                    FAILED=$((FAILED + 1))
+                  fi
                 elif echo "$DELETE_RESULT" | grep -qi "error\|403\|forbidden"; then
-                  echo "    Warning: permission denied — re-publish requires delete:packages scope"
+                  echo "    Warning: permission denied deleting ${PKG_NAME}"
+                  FAILED=$((FAILED + 1))
                 else
                   DELETED=$((DELETED + 1))
                 fi
@@ -117,22 +123,27 @@ jobs:
             fi
           done
 
-          if [ "$DELETED" -gt 0 ]; then
-            echo "Deleted $DELETED existing package(s) — fresh deploy will proceed"
-          else
-            echo "No existing v${VERSION} packages found for ${REPO} — first-time publish"
+          echo "Deleted $DELETED existing package(s), $FAILED failed"
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::warning::Could not delete $FAILED package(s) — deploy will handle 409 conflicts gracefully"
           fi
 
       - name: Deploy to GitHub Packages
         run: |
           set -o pipefail
-          mvn -B -U deploy -P release -DskipTests \
+          # -fae (fail-at-end) ensures ALL modules are attempted even if one hits 409.
+          # Without it, a 409 on the first sub-module kills the reactor and remaining
+          # modules are never deployed.
+          mvn -B -U -fae deploy -P release -DskipTests \
             -DaltDeploymentRepository=github::https://maven.pkg.github.com/${{ github.repository }} \
             2>&1 | tee /tmp/mvn-deploy.log || {
-              if grep -q "status code: 409" /tmp/mvn-deploy.log; then
-                echo "::warning::Artifact version already exists in GitHub Packages (409 Conflict) — some artifacts may not have been re-published"
+              # Check if ALL deploy failures are 409 Conflict (artifact already exists)
+              NON_409=$(grep -i "Failed to deploy\|Failed to execute.*deploy" /tmp/mvn-deploy.log | grep -v "409" || true)
+              if grep -q "status code: 409" /tmp/mvn-deploy.log && [ -z "$NON_409" ]; then
+                echo "::warning::Artifact version already exists in GitHub Packages (409 Conflict)"
               else
-                echo "::error::Maven deploy failed with a non-409 error"
+                echo "::error::Maven deploy to GitHub Packages failed"
+                cat /tmp/mvn-deploy.log | grep -A2 "ERROR\|Failed" | tail -30
                 exit 1
               fi
             }
@@ -230,12 +241,15 @@ jobs:
       - name: Deploy to Maven Central
         run: |
           set -o pipefail
-          mvn -B -U deploy -P release,maven-central -DskipTests \
+          mvn -B -U -fae deploy -P release,maven-central -DskipTests \
             2>&1 | tee /tmp/mvn-central.log || {
-              if grep -qiE "status: 400|already published|already exists|duplicate|content already exists|Deployment.*already|is not allowed" /tmp/mvn-central.log; then
+              # Check if all failures are "already exists" (immutable on Maven Central)
+              NON_DUP=$(grep -i "Failed to deploy\|Failed to execute.*deploy" /tmp/mvn-central.log | grep -viE "409|already published|already exists|duplicate|content already exists|is not allowed" || true)
+              if grep -qiE "status: 400|status code: 409|already published|already exists|duplicate|content already exists|Deployment.*already|is not allowed" /tmp/mvn-central.log && [ -z "$NON_DUP" ]; then
                 echo "::warning::Artifact version already exists on Maven Central (immutable) — this is expected for re-releases"
               else
                 echo "::error::Maven Central deploy failed"
+                cat /tmp/mvn-central.log | grep -A2 "ERROR\|Failed" | tail -30
                 exit 1
               fi
             }
