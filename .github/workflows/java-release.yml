@@ -104,12 +104,18 @@ jobs:
               --jq ".[] | select(.name == \"${VERSION}\") | .id" 2>/dev/null || true)
             if [ -n "$VER_ID" ]; then
               echo "  Deleting ${PKG_NAME} v${VERSION} (ID: ${VER_ID})..."
-              gh api --method DELETE "orgs/${ORG}/packages/maven/${PKG_NAME}/versions/${VER_ID}" 2>/dev/null && DELETED=$((DELETED + 1)) || true
+              DELETE_RESULT=$(gh api --method DELETE "orgs/${ORG}/packages/maven/${PKG_NAME}/versions/${VER_ID}" 2>&1 || true)
+              if echo "$DELETE_RESULT" | grep -q "last version"; then
+                echo "    Only version in package — deleting entire package..."
+                gh api --method DELETE "orgs/${ORG}/packages/maven/${PKG_NAME}" 2>/dev/null && DELETED=$((DELETED + 1)) || true
+              else
+                DELETED=$((DELETED + 1))
+              fi
             fi
           done
 
           if [ "$DELETED" -gt 0 ]; then
-            echo "Deleted $DELETED existing package version(s) — fresh deploy will proceed"
+            echo "Deleted $DELETED existing package(s) — fresh deploy will proceed"
           else
             echo "No existing versions found — first-time publish"
           fi
