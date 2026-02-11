@@ -1,17 +1,17 @@
 ```
-  _____.__                _____.__
-_/ ____\__|______   _____/ ____\  | ___.__.
-\   __\|  \_  __ \_/ __ \   __\|  |<   |  |
- |  |  |  ||  | \/\  ___/|  |  |  |_\___  |
- |__|  |__||__|    \___  >__|  |____/ ____|
-                       \/           \/
-  _____                                                 __
-_/ ____\___________    _____   ______  _  _____________|  | __
-\   __\\_  __ \__  \  /     \_/ __ \ \/ \/ /  _ \_  __ \  |/ /
- |  |   |  | \// __ \|  Y Y  \  ___/\     (  <_> )  | \/    <
- |__|   |__|  (____  /__|_|  /\___  >\/\_/ \____/|__|  |__|_ \
-                   \/      \/     \/                        \/
- --------------------------> Enterprise software made easy  <-
+  _____.__ _____.__
+_/ ____\__|______ _____/ ____\ | ___.__.
+\ __\| \_ __ \_/ __ \ __\| |< | |
+ | | | || | \/\ ___/| | | |_\___ |
+ |__| |__||__| \___ >__| |____/ ____|
+                       \/ \/
+  _____ __
+_/ ____\___________ _____ ______ _ _____________| | __
+\ __\\_ __ \__ \ / \_/ __ \ \/ \/ / _ \_ __ \ |/ /
+ | | | | \// __ \| Y Y \ ___/\ ( <_> ) | \/ <
+ |__| |__| (____ /__|_| /\___ >\/\_/ \____/|__| |__|_ \
+                   \/ \/ \/ \/
+ --------------------------> Enterprise software made easy <-
 ```
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -48,9 +48,9 @@ irm https://raw.githubusercontent.com/fireflyframework/fireflyframework-cli/main
 Then bootstrap the entire framework into your local environment:
 
 ```bash
-flywork setup              # clones all repos in dependency order and installs to ~/.m2
-flywork create core        # scaffold a new microservice from a built-in archetype
-flywork doctor             # verify your environment (Java, Maven, Git, etc.)
+flywork setup # clones all repos in dependency order and installs to ~/.m2
+flywork create core # scaffold a new microservice from a built-in archetype
+flywork doctor # verify your environment (Java, Maven, Git, etc.)
 ```
 
 Four project archetypes are available: **core**, **domain**, **application**, and **library**. See the [CLI documentation](https://github.com/fireflyframework/fireflyframework-cli) for full details.
@@ -65,7 +65,7 @@ Once configured, inherit the parent POM:
 <parent>
     <groupId>org.fireflyframework</groupId>
     <artifactId>fireflyframework-parent</artifactId>
-    <version>26.01.01</version>
+    <version>26.02.01</version>
     <relativePath/>
 </parent>
 ```

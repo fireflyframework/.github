@@ -38,39 +38,39 @@ Here is what the architecture looks like:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                        .github repository                           │
-│                                                                     │
-│  .github/workflows/                                                 │
-│  ├── java-ci.yml                Shared CI for all Java repos        │
-│  ├── java-release.yml           Shared release for all Java repos   │
-│  ├── go-ci.yml                  Shared CI for Go repos              │
-│  ├── go-release.yml             Shared release for Go repos         │
-│  ├── python-ci.yml              Shared CI for Python repos          │
-│  ├── python-release.yml         Shared release for Python repos     │
-│  ├── dag-orchestrator.yml       Cross-repo cascade coordinator      │
-│  └── dependabot-auto-merge.yml  Auto-merge patch/minor Dependabot   │
+│ .github repository │
+│ │
+│ .github/workflows/ │
+│ ├── java-ci.yml Shared CI for all Java repos │
+│ ├── java-release.yml Shared release for all Java repos │
+│ ├── go-ci.yml Shared CI for Go repos │
+│ ├── go-release.yml Shared release for Go repos │
+│ ├── python-ci.yml Shared CI for Python repos │
+│ ├── python-release.yml Shared release for Python repos │
+│ ├── dag-orchestrator.yml Cross-repo cascade coordinator │
+│ └── dependabot-auto-merge.yml Auto-merge patch/minor Dependabot │
 └─────────────────────────────────────────────────────────────────────┘
                             ▲
-                            │  workflow_call (reusable workflow)
+                            │ workflow_call (reusable workflow)
                             │
 ┌─────────────────────────────────────────────────────────────────────┐
-│                     Each framework repository                       │
-│                                                                     │
-│  .github/workflows/                                                 │
-│  ├── ci.yml       → calls shared java-ci.yml   (10-15 lines)       │
-│  └── release.yml  → calls shared release.yml   (10-15 lines)       │
+│ Each framework repository │
+│ │
+│ .github/workflows/ │
+│ ├── ci.yml → calls shared java-ci.yml (10-15 lines) │
+│ └── release.yml → calls shared release.yml (10-15 lines) │
 └─────────────────────────────────────────────────────────────────────┘
                             ▲
-                            │  triggered by
+                            │ triggered by
                             │
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         Trigger Events                              │
-│                                                                     │
-│  Push to develop            → ci.yml → build & test → cascade CI    │
-│  Pull request               → ci.yml → build & test (no cascade)    │
-│  Tag push (v*)              → release.yml → publish + release       │
-│  workflow_dispatch (manual) → ci.yml or release.yml                 │
-│  workflow_dispatch (DAG)    → ci.yml or release.yml (from cascade)  │
+│ Trigger Events │
+│ │
+│ Push to develop → ci.yml → build & test → cascade CI │
+│ Pull request → ci.yml → build & test (no cascade) │
+│ Tag push (v*) → release.yml → publish + release │
+│ workflow_dispatch (manual) → ci.yml or release.yml │
+│ workflow_dispatch (DAG) → ci.yml or release.yml (from cascade) │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -317,18 +317,18 @@ To illustrate, let's walk through what happens when you push a commit to `develo
 5. Build succeeds ✓
    │
 6. java-ci.yml's last step: "Trigger downstream CI via DAG orchestrator"
-   │  Uses ORG_DISPATCH_TOKEN to dispatch dag-orchestrator.yml
-   │  with mode=ci, trigger-repo=fireflyframework-utils
+   │ Uses ORG_DISPATCH_TOKEN to dispatch dag-orchestrator.yml
+   │ with mode=ci, trigger-repo=fireflyframework-utils
    │
 7. DAG orchestrator checks out the CLI repo, builds flywork, and runs:
-   │  flywork dag affected --from fireflyframework-utils --json
-   │  → Returns all downstream repos (e.g., r2dbc, cqrs, web, core, domain, ...)
+   │ flywork dag affected --from fireflyframework-utils --json
+   │ → Returns all downstream repos (e.g., r2dbc, cqrs, web, core, domain, ...)
    │
 8. For each affected repo, uses ORG_DISPATCH_TOKEN to dispatch ci.yml on develop
-   │  → fireflyframework-r2dbc/ci.yml (workflow_dispatch)
-   │  → fireflyframework-cqrs/ci.yml (workflow_dispatch)
-   │  → fireflyframework-web/ci.yml (workflow_dispatch)
-   │  → ... (all downstream repos in parallel)
+   │ → fireflyframework-r2dbc/ci.yml (workflow_dispatch)
+   │ → fireflyframework-cqrs/ci.yml (workflow_dispatch)
+   │ → fireflyframework-web/ci.yml (workflow_dispatch)
+   │ → ... (all downstream repos in parallel)
    │
 9. Each downstream repo builds and tests against the NEW version of utils
    │
@@ -350,7 +350,7 @@ When you release a repo, the cascade works the same way but triggers `release.ym
 1. Release succeeds on fireflyframework-utils (artifacts published, GitHub Release created)
    │
 2. java-release.yml's last step: "Trigger downstream releases via DAG orchestrator"
-   │  Dispatches: dag-orchestrator.yml with mode=release, trigger-repo=fireflyframework-utils
+   │ Dispatches: dag-orchestrator.yml with mode=release, trigger-repo=fireflyframework-utils
    │
 3. DAG orchestrator computes affected repos and dispatches release.yml on main for each
    │
@@ -377,7 +377,7 @@ jobs:
   release:
     uses: fireflyframework/.github/.github/workflows/java-release.yml@main
     with:
-      trigger-downstream: false  # do not cascade
+      trigger-downstream: false # do not cascade
     permissions:
       contents: write
       packages: write
@@ -403,8 +403,8 @@ The DAG orchestrator defines its own permissions block:
 
 ```yaml
 permissions:
-  contents: read   # reading the CLI repo
-  actions: write   # dispatching workflows in other repos
+  contents: read # reading the CLI repo
+  actions: write # dispatching workflows in other repos
 ```
 
 For the actual cross-repo dispatches, it uses `secrets.ORG_DISPATCH_TOKEN`. The default `GITHUB_TOKEN` cannot dispatch workflows in other repos — it is scoped to the repo where the workflow runs (the `.github` repo in this case).
@@ -463,9 +463,9 @@ The 38 Java repositories are organized into 6 dependency layers. Repos in the sa
 You can always get the current DAG with:
 
 ```bash
-flywork dag layers           # human-readable
-flywork dag export --json    # machine-readable (used by the orchestrator)
-flywork dag affected --from fireflyframework-cache --json  # show what a change affects
+flywork dag layers # human-readable
+flywork dag export --json # machine-readable (used by the orchestrator)
+flywork dag affected --from fireflyframework-cache --json # show what a change affects
 ```
 
 ---
@@ -683,13 +683,13 @@ All framework repos inherit from `fireflyframework-parent`, which configures Git
 
 ### Version Immutability
 
-GitHub Packages does **not** allow overwriting an existing version. Once `26.01.01` is published for a given artifact, that version is permanent. Attempting to re-publish returns HTTP 409 Conflict.
+GitHub Packages does **not** allow overwriting an existing version. Once `26.02.01` is published for a given artifact, that version is permanent. Attempting to re-publish returns HTTP 409 Conflict.
 
 **What this means in practice:**
 - Every release must use a new version number
 - If you need to re-publish with changes, bump the version first: `flywork fwversion bump --auto`
 - The release workflow handles 409s gracefully — it logs a warning and continues to the GitHub Release creation step
-- This immutability is actually a good thing: it guarantees that version `26.01.01` always refers to the same bytes, everywhere
+- This immutability is actually a good thing: it guarantees that version `26.02.01` always refers to the same bytes, everywhere
 
 ### CI Authentication
 
@@ -712,9 +712,9 @@ The recommended way to release the entire framework:
 flywork fwversion bump --auto --commit --tag --push
 
 # 2. Tag pushes automatically trigger release.yml in each repo
-#    → Maven artifacts are published to GitHub Packages
-#    → GitHub Releases are created with auto-generated release notes
-#    → Each release cascades to downstream repos (if trigger-downstream is true)
+# → Maven artifacts are published to GitHub Packages
+# → GitHub Releases are created with auto-generated release notes
+# → Each release cascades to downstream repos (if trigger-downstream is true)
 
 # 3. Verify everything succeeded
 flywork fwversion check
@@ -795,7 +795,7 @@ Firefly Framework uses **Calendar Versioning** (CalVer) with the format `YY.MM.P
 **Why CalVer instead of SemVer?** With 38 interdependent Java modules that always release together, semantic versioning (major.minor.patch) creates confusion: what counts as a "major" change when 38 repos are involved? CalVer makes it immediately clear *when* a release was made, and the patch number tracks how many releases happened that month. All 38 repos share the same version number, which makes dependency management simple.
 
 **Examples:**
-- First release in January 2026: `26.01.01`
+- First release in January 2026: `26.02.01`
 - Second release in January 2026: `26.01.02`
 - First release in February 2026: `26.02.01`
 
@@ -872,7 +872,7 @@ All Firefly Framework repositories follow a simple two-branch model:
 
 ### "Could not resolve artifact"
 
-**What you see:** `Could not find artifact org.fireflyframework:fireflyframework-xyz:jar:26.01.01`
+**What you see:** `Could not find artifact org.fireflyframework:fireflyframework-xyz:jar:26.02.01`
 
 **What it means:** Maven cannot find a framework dependency. This can happen for several reasons:
 
@@ -919,8 +919,8 @@ All Firefly Framework repositories follow a simple two-branch model:
    ```yaml
    # For release workflows:
    permissions:
-     contents: write    # creating releases and tags
-     packages: write    # publishing artifacts
+     contents: write # creating releases and tags
+     packages: write # publishing artifacts
    ```
 2. **Organization-level restrictions** — Go to Organization Settings → Actions → General → Workflow permissions and select "Read and write permissions."
 3. **Cross-repo dispatch failed** — The DAG orchestrator and shared workflows use `ORG_DISPATCH_TOKEN` (an org-level PAT) for cross-repo dispatch. If this token is missing, expired, or does not have sufficient permissions, cascade triggers will fail silently (the workflow logs a warning instead of failing the build). Check the org secret at Organization Settings → Secrets and variables → Actions → `ORG_DISPATCH_TOKEN`.

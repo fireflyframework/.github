@@ -22,21 +22,21 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) before contribu
 
 Ensure the following tools are installed and available on your `PATH`:
 
-| Tool   | Required Version | Notes                          |
+| Tool | Required Version | Notes |
 |--------|------------------|--------------------------------|
-| Java   | 25 (21+ compatible) | Default is Java 25; builds must pass on 21+ |
-| Maven  | 3.9+             | Used for all Java module builds |
-| Go     | 1.25+            | Required for the CLI (`flywork`) |
-| Python | 3.13+            | Required for GenAI modules and tooling |
-| Git    | 2.30+            | Required for branching workflows |
+| Java | 25 (21+ compatible) | Default is Java 25; builds must pass on 21+ |
+| Maven | 3.9+ | Used for all Java module builds |
+| Go | 1.25+ | Required for the CLI (`flywork`) |
+| Python | 3.13+ | Required for GenAI modules and tooling |
+| Git | 2.30+ | Required for branching workflows |
 
 ## Quick Setup
 
 The fastest way to bootstrap your development environment is with the Firefly CLI:
 
 ```bash
-flywork setup     # clones all repos in dependency order and installs to ~/.m2
-flywork doctor    # verifies your environment (Java, Maven, Go, Python, Git, etc.)
+flywork setup # clones all repos in dependency order and installs to ~/.m2
+flywork doctor # verifies your environment (Java, Maven, Go, Python, Git, etc.)
 ```
 
 `flywork doctor` will check every prerequisite listed above and report any issues.
@@ -49,27 +49,27 @@ Firefly Framework follows a **Gitflow** branching model across all repositories.
 
 ```
   main ─────────●────────────────●──────────────── production releases
-                 \              / \
-  hotfix/fix-x    `───●───●───'   \
+                 \ / \
+  hotfix/fix-x `───●───●───' \
                                    \
   release/26.02 ──────●─────●──────●──────────────
-                     /             |
+                     / |
   develop ──●──●──●──●──●──●──●──●──●──●──●────── integration branch
-              \      /       \      /
-  feature/a    `──●─'         \    /
-                               \  /
-  feature/b                     `●'
+              \ / \ /
+  feature/a `──●─' \ /
+                               \ /
+  feature/b `●'
 ```
 
 ### Branch Purposes
 
-| Branch            | Created From | Merges Into        | Purpose                        |
+| Branch | Created From | Merges Into | Purpose |
 |-------------------|--------------|--------------------|--------------------------------|
-| `main`            | --           | --                 | Production releases only       |
-| `develop`         | `main`       | --                 | Integration branch for all work |
-| `feature/<name>`  | `develop`    | `develop`          | New features and enhancements  |
-| `release/YY.MM`   | `develop`    | `main` + `develop` | Release stabilization and prep |
-| `hotfix/<name>`   | `main`       | `main` + `develop` | Emergency production fixes     |
+| `main` | -- | -- | Production releases only |
+| `develop` | `main` | -- | Integration branch for all work |
+| `feature/<name>` | `develop` | `develop` | New features and enhancements |
+| `release/YY.MM` | `develop` | `main` + `develop` | Release stabilization and prep |
+| `hotfix/<name>` | `main` | `main` + `develop` | Emergency production fixes |
 
 ### Rules
 
@@ -109,13 +109,13 @@ Firefly Framework follows a **Gitflow** branching model across all repositories.
 
 Firefly Framework uses **Calendar Versioning** in `YY.MM.PATCH` format:
 
-| Segment | Meaning                        | Example  |
+| Segment | Meaning | Example |
 |---------|--------------------------------|----------|
-| `YY`    | Two-digit year of the release  | `26`     |
-| `MM`    | Two-digit month of the release | `01`     |
-| `PATCH` | Incremental patch number       | `01`     |
+| `YY` | Two-digit year of the release | `26` |
+| `MM` | Two-digit month of the release | `01` |
+| `PATCH` | Incremental patch number | `01` |
 
-A full version looks like **`26.01.01`** (January 2026, first patch).
+A full version looks like **`26.02.01`** (January 2026, first patch).
 
 - The `develop` branch always carries a `-SNAPSHOT` suffix (e.g., `26.02.00-SNAPSHOT`).
 - Release branches drop the `-SNAPSHOT` suffix when they are finalized.
@@ -139,7 +139,7 @@ A full version looks like **`26.01.01`** (January 2026, first patch).
    * you may not use this file except in compliance with the License.
    * You may obtain a copy of the License at
    *
-   *     http://www.apache.org/licenses/LICENSE-2.0
+   * http://www.apache.org/licenses/LICENSE-2.0
    *
    * Unless required by applicable law or agreed to in writing, software
    * distributed under the License is distributed on an "AS IS" BASIS,
@@ -171,15 +171,15 @@ All commits must follow the format:
 
 Where `<type>` is one of:
 
-| Type       | When to Use                              |
+| Type | When to Use |
 |------------|------------------------------------------|
-| `feat`     | A new feature                            |
-| `fix`      | A bug fix                                |
-| `docs`     | Documentation-only changes               |
+| `feat` | A new feature |
+| `fix` | A bug fix |
+| `docs` | Documentation-only changes |
 | `refactor` | Code restructuring with no behavior change |
-| `test`     | Adding or updating tests                 |
-| `ci`       | CI/CD pipeline changes                   |
-| `chore`    | Maintenance tasks (dependency bumps, etc.) |
+| `test` | Adding or updating tests |
+| `ci` | CI/CD pipeline changes |
+| `chore` | Maintenance tasks (dependency bumps, etc.) |
 
 ### Examples
 

@@ -6,10 +6,10 @@ The Firefly Framework team takes security seriously. We appreciate your efforts 
 
 ## Supported Versions
 
-| Version   | Supported          |
+| Version | Supported |
 |-----------|--------------------|
-| 26.01.x   | :white_check_mark: |
-| < 26.01.0 | :x:                |
+| 26.01.x | :white_check_mark: |
+| < 26.01.0 | :x: |
 
 Only the latest CalVer release line receives security patches. If you are running an older version, please upgrade before reporting.
 
@@ -38,11 +38,11 @@ Please encrypt sensitive reports using our PGP key if available (contact us for 
 
 ## Response Timeline
 
-| Stage                  | Timeframe            |
+| Stage | Timeframe |
 |------------------------|----------------------|
-| Acknowledgment         | Within 48 hours      |
-| Initial assessment     | Within 5 business days |
-| Fix for critical issues | Within 7 days        |
+| Acknowledgment | Within 48 hours |
+| Initial assessment | Within 5 business days |
+| Fix for critical issues | Within 7 days |
 
 For non-critical issues, fixes will be included in the next scheduled release. We will keep you informed of our progress throughout the process.
 
