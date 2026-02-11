@@ -8,8 +8,8 @@ The Firefly Framework team takes security seriously. We appreciate your efforts 
 
 | Version | Supported |
 |-----------|--------------------|
-| 26.01.x | :white_check_mark: |
-| < 26.01.0 | :x: |
+| 26.02.x | :white_check_mark: |
+| < 26.02.0 | :x: |
 
 Only the latest CalVer release line receives security patches. If you are running an older version, please upgrade before reporting.
 
@@ -21,7 +21,7 @@ Only the latest CalVer release line receives security patches. If you are runnin
 
 Instead, send an email to:
 
-> **security@fireflyframework.com**
+> **security@fireflyframework.org**
 
 Include the following information in your report:
 

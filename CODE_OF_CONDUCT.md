@@ -6,7 +6,7 @@ All participants in the Firefly Framework community are expected to follow it. P
 
 ## Reporting
 
-If you experience or witness unacceptable behavior, please report it by emailing **conduct@fireflyframework.com**. All reports will be reviewed and investigated promptly and confidentially.
+If you experience or witness unacceptable behavior, please report it by emailing **conduct@fireflyframework.org**. All reports will be reviewed and investigated promptly and confidentially.
 
 ## Enforcement
 
