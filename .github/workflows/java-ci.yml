@@ -72,7 +72,7 @@ jobs:
           EOF
 
       - name: Build with Maven
-        run: mvn -B ${{ inputs.maven-goals }} ${{ inputs.maven-args }}
+        run: mvn -B -U ${{ inputs.maven-goals }} ${{ inputs.maven-args }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
