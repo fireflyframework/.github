@@ -138,7 +138,15 @@ jobs:
 
       - name: Deploy to Maven Central
         run: |
-          mvn -B deploy -P release,maven-central -DskipTests
+          mvn -B deploy -P release,maven-central -DskipTests \
+            2>&1 | tee /tmp/mvn-central.log || {
+              if grep -qiE "status: 400|already published|already exists|duplicate|content already exists" /tmp/mvn-central.log; then
+                echo "::warning::Artifact version already exists on Maven Central — skipping deploy"
+              else
+                echo "::error::Maven Central deploy failed"
+                exit 1
+              fi
+            }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
@@ -212,7 +220,8 @@ jobs:
           make_latest: true
 
       - name: Trigger downstream releases via DAG orchestrator
-        if: success() && inputs.trigger-downstream
+        if: inputs.trigger-downstream
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.ORG_DISPATCH_TOKEN }}
         run: |
