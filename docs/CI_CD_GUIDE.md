@@ -613,13 +613,13 @@ The two-phase approach prevents the reactor ban cascade: if the parent POM alrea
 
 ### Version Immutability
 
-GitHub Packages does **not** allow overwriting an existing version. Once `26.02.03` is published for a given artifact, that version is permanent. Attempting to re-publish returns HTTP 409 Conflict.
+GitHub Packages does **not** allow overwriting an existing version. Once `26.02.04` is published for a given artifact, that version is permanent. Attempting to re-publish returns HTTP 409 Conflict.
 
 **What this means in practice:**
 - Every release must use a new version number
 - If you need to re-publish with changes, bump the version first: `flywork fwversion bump --auto`
 - The release workflow handles 409s gracefully — it logs a warning and continues
-- This immutability is a good thing: it guarantees that version `26.02.03` always refers to the same bytes, everywhere
+- This immutability is a good thing: it guarantees that version `26.02.04` always refers to the same bytes, everywhere
 
 ---
 
@@ -660,8 +660,8 @@ gh workflow run dag-orchestrator.yml \
 #    ... and so on until all 39 Java repos are released
 
 # 5. Release non-Java repos independently (they have no layer dependencies)
-cd fireflyframework-cli && git push origin main v26.02.03
-cd fireflyframework-genai && git push origin main v26.02.03
+cd fireflyframework-cli && git push origin main v26.02.04
+cd fireflyframework-genai && git push origin main v26.02.04
 
 # 6. Verify everything succeeded
 flywork fwversion check
@@ -678,13 +678,13 @@ For maximum control (e.g., debugging release issues or when the orchestrator is 
 cd .github && git push origin main
 
 # 2. Layer 0: parent
-cd fireflyframework-parent && git push origin main v26.02.03
+cd fireflyframework-parent && git push origin main v26.02.04
 # Wait for GitHub Packages job to complete:
 gh run watch $(gh run list -w release.yml -L1 --json databaseId -q '.[0].databaseId' -R fireflyframework/fireflyframework-parent) -R fireflyframework/fireflyframework-parent
 
 # 3. Layer 1: bom, utils, cache, eda, ecm, idp, ...
 for repo in fireflyframework-bom fireflyframework-utils fireflyframework-cache ...; do
-  cd "$repo" && git push origin main v26.02.03 && cd ..
+  cd "$repo" && git push origin main v26.02.04 && cd ..
 done
 # Wait for all Layer 1 GitHub Packages jobs to complete before continuing
 
@@ -692,8 +692,8 @@ done
 # ... push all repos in the layer, wait for GitHub Packages, proceed to next layer
 
 # 5. Non-Java repos (no layer dependencies)
-cd fireflyframework-cli && git push origin main v26.02.03
-cd fireflyframework-genai && git push origin main v26.02.03
+cd fireflyframework-cli && git push origin main v26.02.04
+cd fireflyframework-genai && git push origin main v26.02.04
 ```
 
 ### GitHub Packages Is the Layer Gate (Not Maven Central)
@@ -870,7 +870,7 @@ This means pushing a tag **only** triggers the release — it does **not** also 
 
 ### "Could not resolve artifact"
 
-**What you see:** `Could not find artifact org.fireflyframework:fireflyframework-xyz:jar:26.02.03`
+**What you see:** `Could not find artifact org.fireflyframework:fireflyframework-xyz:jar:26.02.04`
 
 **Common causes:**
 

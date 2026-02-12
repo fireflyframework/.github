@@ -164,7 +164,7 @@ Paste the following content. Replace `YOUR_GITHUB_USERNAME` with your GitHub use
 Test that Maven can reach GitHub Packages:
 
 ```bash
-mvn dependency:resolve -DgroupId=org.fireflyframework -DartifactId=fireflyframework-parent -Dversion=26.02.03 -Dpackaging=pom
+mvn dependency:resolve -DgroupId=org.fireflyframework -DartifactId=fireflyframework-parent -Dversion=26.02.04 -Dpackaging=pom
 ```
 
 If successful, you will see `BUILD SUCCESS`. If it fails with a 401 error, double-check your username and token in `settings.xml`.
@@ -256,7 +256,7 @@ Or manually, create a `pom.xml`:
     <parent>
         <groupId>org.fireflyframework</groupId>
         <artifactId>fireflyframework-parent</artifactId>
-        <version>26.02.03</version>
+        <version>26.02.04</version>
         <relativePath/>
     </parent>
 
@@ -301,7 +301,7 @@ If your project already has its own parent POM, you can import the Firefly BOM i
         <dependency>
             <groupId>org.fireflyframework</groupId>
             <artifactId>fireflyframework-bom</artifactId>
-            <version>26.02.03</version>
+            <version>26.02.04</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -529,7 +529,7 @@ And add dependencies:
 
 ```groovy
 dependencies {
-    implementation platform("org.fireflyframework:fireflyframework-bom:26.02.03")
+    implementation platform("org.fireflyframework:fireflyframework-bom:26.02.04")
     implementation "org.fireflyframework:fireflyframework-web"
     implementation "org.fireflyframework:fireflyframework-r2dbc"
 }
@@ -564,7 +564,7 @@ Update the parent POM version in your `pom.xml`:
 <parent>
     <groupId>org.fireflyframework</groupId>
     <artifactId>fireflyframework-parent</artifactId>
-    <version>26.02.03</version> <!-- new version -->
+    <version>26.02.04</version> <!-- new version -->
     <relativePath/>
 </parent>
 ```
