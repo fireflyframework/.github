@@ -65,7 +65,7 @@ Once configured, inherit the parent POM:
 <parent>
     <groupId>org.fireflyframework</groupId>
     <artifactId>fireflyframework-parent</artifactId>
-    <version>26.02.03</version>
+    <version>26.02.04</version>
     <relativePath/>
 </parent>
 ```
