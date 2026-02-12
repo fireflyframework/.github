@@ -9,6 +9,12 @@ Complete reference of all framework modules, organized by capability.
 | [fireflyframework-parent](https://github.com/fireflyframework/fireflyframework-parent) | Parent POM managing Spring Boot 3.5.10, Spring Cloud 2025, Java 25 (default, 21+ compatible), and all shared plugin/dependency configuration |
 | [fireflyframework-bom](https://github.com/fireflyframework/fireflyframework-bom) | Bill of Materials for conflict-free version alignment across all framework modules |
 
+## Observability
+
+| Repository | Purpose |
+|---|---|
+| [fireflyframework-observability](https://github.com/fireflyframework/fireflyframework-observability) | Centralized observability foundation providing unified metrics (`FireflyMetricsSupport`), reactive-safe tracing (`FireflyTracingSupport`), health indicators (`FireflyHealthIndicator`), structured logging, and automatic reactive context propagation with config-based OpenTelemetry/Brave bridge selection and Prometheus/OTLP metrics export |
+
 ## Runtime Infrastructure
 
 | Repository | Purpose |
