@@ -115,7 +115,7 @@ Firefly Framework uses **Calendar Versioning** in `YY.MM.PATCH` format:
 | `MM` | Two-digit month of the release | `01` |
 | `PATCH` | Incremental patch number | `01` |
 
-A full version looks like **`26.02.02`** (January 2026, first patch).
+A full version looks like **`26.02.03`** (January 2026, first patch).
 
 - The `develop` branch always carries a `-SNAPSHOT` suffix (e.g., `26.02.00-SNAPSHOT`).
 - Release branches drop the `-SNAPSHOT` suffix when they are finalized.

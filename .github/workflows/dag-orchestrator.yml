@@ -29,14 +29,13 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     outputs:
-      affected: ${{ steps.affected.outputs.repos }}
       layers: ${{ steps.affected.outputs.layers }}
     steps:
       - name: Checkout CLI
         uses: actions/checkout@v4
         with:
           repository: fireflyframework/fireflyframework-cli
-          ref: develop
+          ref: main
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -46,54 +45,74 @@ jobs:
       - name: Build CLI
         run: go build -o flywork .
 
-      - name: Compute affected repos
+      - name: Compute affected repos with layers
         id: affected
         run: |
-          echo "Mode: ${{ inputs.mode }}"
-          echo "Trigger repo: ${{ inputs.trigger-repo }}"
-          echo "Build all: ${{ inputs.build-all }}"
-
           if [ "${{ inputs.build-all }}" = "true" ]; then
-            REPOS=$(./flywork dag export --json | jq -c '.layers')
-            echo "repos=$(./flywork dag export --json | jq -c '[.layers[][]]')" >> "$GITHUB_OUTPUT"
-            echo "layers=$REPOS" >> "$GITHUB_OUTPUT"
+            LAYERS=$(./flywork dag export --json | jq -c '.layers')
           else
-            AFFECTED=$(./flywork dag affected --from "${{ inputs.trigger-repo }}" --json)
-            REPOS=$(echo "$AFFECTED" | jq -c '.affected')
-            COUNT=$(echo "$AFFECTED" | jq '.count')
-            echo "repos=$REPOS" >> "$GITHUB_OUTPUT"
-            echo "layers=[]" >> "$GITHUB_OUTPUT"
-            echo "Affected repos ($COUNT): $REPOS"
+            LAYERS=$(./flywork dag affected --from "${{ inputs.trigger-repo }}" --layers --json | jq -c '.layers')
           fi
+          echo "layers=$LAYERS" >> "$GITHUB_OUTPUT"
+          echo "Layer plan:"
+          echo "$LAYERS" | jq '.'
 
   dispatch:
     needs: plan
-    if: needs.plan.outputs.affected != '[]' && needs.plan.outputs.affected != 'null'
+    if: needs.plan.outputs.layers != '[]' && needs.plan.outputs.layers != 'null'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        repo: ${{ fromJson(needs.plan.outputs.affected) }}
-      fail-fast: false
     steps:
-      - name: Determine workflow to trigger
-        id: workflow
-        run: |
-          if [ "${{ inputs.mode }}" = "release" ]; then
-            echo "name=release.yml" >> "$GITHUB_OUTPUT"
-            echo "ref=main" >> "$GITHUB_OUTPUT"
-            echo "Dispatching release workflow on ${{ matrix.repo }}"
-          else
-            echo "name=ci.yml" >> "$GITHUB_OUTPUT"
-            echo "ref=develop" >> "$GITHUB_OUTPUT"
-            echo "Dispatching CI workflow on ${{ matrix.repo }}"
-          fi
-
-      - name: Trigger ${{ inputs.mode }} on ${{ matrix.repo }}
+      - name: Dispatch layer by layer
         env:
           GH_TOKEN: ${{ secrets.ORG_DISPATCH_TOKEN }}
+          LAYERS: ${{ needs.plan.outputs.layers }}
         run: |
-          gh api \
-            --method POST \
-            -H "Accept: application/vnd.github+json" \
-            repos/fireflyframework/${{ matrix.repo }}/actions/workflows/${{ steps.workflow.outputs.name }}/dispatches \
-            -f ref=${{ steps.workflow.outputs.ref }} || echo "::warning::Could not dispatch ${{ inputs.mode }} to ${{ matrix.repo }}"
+          MODE="${{ inputs.mode }}"
+          WORKFLOW="ci.yml"
+          REF="develop"
+          if [ "$MODE" = "release" ]; then
+            WORKFLOW="release.yml"
+            REF="main"
+          fi
+
+          LAYER_COUNT=$(echo "$LAYERS" | jq 'length')
+          for i in $(seq 0 $((LAYER_COUNT - 1))); do
+            REPOS=$(echo "$LAYERS" | jq -r ".[$i][]")
+            echo "=== Layer $i ==="
+
+            # Dispatch all repos in this layer
+            PIDS=""
+            for REPO in $REPOS; do
+              echo "  Dispatching $WORKFLOW on $REPO..."
+              gh api --method POST \
+                repos/fireflyframework/${REPO}/actions/workflows/${WORKFLOW}/dispatches \
+                -f ref=${REF} &
+              PIDS="$PIDS $!"
+            done
+
+            # Wait for all dispatches in this layer
+            for PID in $PIDS; do wait $PID; done
+
+            # Wait for workflows to complete before next layer
+            echo "  Waiting for layer $i workflows to complete..."
+            for REPO in $REPOS; do
+              # Poll for workflow completion (max 30 min per layer)
+              for attempt in $(seq 1 60); do
+                RUN_ID=$(gh api "repos/fireflyframework/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=1" \
+                  --jq '.workflow_runs[0] | select(.status != "completed") | .id' 2>/dev/null || true)
+                if [ -z "$RUN_ID" ]; then
+                  STATUS=$(gh api "repos/fireflyframework/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=1" \
+                    --jq '.workflow_runs[0].conclusion' 2>/dev/null || echo "unknown")
+                  echo "  $REPO completed: $STATUS"
+                  if [ "$STATUS" != "success" ]; then
+                    echo "::error::$REPO failed with status: $STATUS"
+                    exit 1
+                  fi
+                  break
+                fi
+                sleep 30
+              done
+            done
+
+            echo "=== Layer $i complete ==="
+          done

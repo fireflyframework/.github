@@ -34,7 +34,6 @@ jobs:
       - name: Type check with pyright
         run: uv run pyright
         timeout-minutes: 10
-        continue-on-error: true
 
       - name: Run tests
         run: uv run pytest --cov --cov-report=term-missing

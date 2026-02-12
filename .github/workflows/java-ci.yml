@@ -18,15 +18,13 @@ on:
         required: false
         type: string
         default: ''
-      trigger-downstream:
-        description: 'Trigger DAG orchestrator for downstream repos after successful build'
-        required: false
-        type: boolean
-        default: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ci-${{ github.repository }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -86,18 +84,3 @@ jobs:
             **/target/failsafe-reports/
           retention-days: 7
           if-no-files-found: ignore
-
-      - name: Trigger downstream CI via DAG orchestrator
-        if: success() && inputs.trigger-downstream && github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ secrets.ORG_DISPATCH_TOKEN }}
-        run: |
-          REPO_NAME="${{ github.event.repository.name }}"
-          echo "Triggering DAG orchestrator for downstream repos of ${REPO_NAME}..."
-          gh api \
-            --method POST \
-            -H "Accept: application/vnd.github+json" \
-            repos/fireflyframework/.github/actions/workflows/dag-orchestrator.yml/dispatches \
-            -f ref=main \
-            -f "inputs[trigger-repo]=${REPO_NAME}" \
-            -f "inputs[mode]=ci" && echo "DAG orchestrator triggered" || echo "::warning::Could not trigger DAG orchestrator (cross-repo dispatch may require org-level token)"
