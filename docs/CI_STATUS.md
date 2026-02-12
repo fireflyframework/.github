@@ -12,6 +12,12 @@ Live build status for every repository in the Firefly Framework organization.
 | [fireflyframework-validators](https://github.com/fireflyframework/fireflyframework-validators) | Annotation-based validators for financial, identity, and general-purpose data formats | [![CI](https://github.com/fireflyframework/fireflyframework-validators/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-validators/actions/workflows/ci.yml) |
 | [fireflyframework-plugins](https://github.com/fireflyframework/fireflyframework-plugins) | Annotation-based plugin discovery, dependency resolution, and hot-loadable JAR/Spring Bean loaders | [![CI](https://github.com/fireflyframework/fireflyframework-plugins/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-plugins/actions/workflows/ci.yml) |
 
+## Observability
+
+| Repository | Description | CI |
+|:---|:---|:---|
+| [fireflyframework-observability](https://github.com/fireflyframework/fireflyframework-observability) | Centralized metrics, tracing, health indicators, structured logging, and reactive context propagation with config-based OTel/Brave bridge and Prometheus/OTLP exporter selection | [![CI](https://github.com/fireflyframework/fireflyframework-observability/actions/workflows/ci.yml/badge.svg)](https://github.com/fireflyframework/fireflyframework-observability/actions/workflows/ci.yml) |
+
 ## Core Modules
 
 | Repository | Description | CI |

@@ -1,6 +1,6 @@
 # CI/CD Configuration Guide
 
-Everything you need to know about how Firefly Framework builds, tests, publishes, and releases its 40 repositories — and how to set it up for new ones.
+Everything you need to know about how Firefly Framework builds, tests, publishes, and releases its 41 repositories — and how to set it up for new ones.
 
 ---
 
@@ -25,13 +25,13 @@ Everything you need to know about how Firefly Framework builds, tests, publishes
 
 ## The Big Picture
 
-Firefly Framework is not a single project — it is **40 interconnected repositories** that form a dependency graph (DAG). Some repos are foundations that many others depend on (like `parent`, `utils`, or `bom`), while others are leaves that depend on everything below them (like `notifications-firebase` or `backoffice`).
+Firefly Framework is not a single project — it is **41 interconnected repositories** that form a dependency graph (DAG). Some repos are foundations that many others depend on (like `parent`, `utils`, `observability`, or `bom`), while others are leaves that depend on everything below them (like `notifications-firebase` or `backoffice`).
 
-This creates a real engineering challenge: **when you change something in a foundational repo, every repo that depends on it — directly or transitively — needs to be rebuilt and re-tested to make sure nothing broke.** Doing this manually across 40 repos is not realistic.
+This creates a real engineering challenge: **when you change something in a foundational repo, every repo that depends on it — directly or transitively — needs to be rebuilt and re-tested to make sure nothing broke.** Doing this manually across 41 repos is not realistic.
 
 Our CI/CD system solves this with two key ideas:
 
-1. **Shared workflows** — All build logic lives in one place (the `.github` repo). Update it once, all 40 repos get the change.
+1. **Shared workflows** — All build logic lives in one place (the `.github` repo). Update it once, all 41 repos get the change.
 2. **DAG-aware release ordering** — The DAG orchestrator dispatches releases **layer by layer**, ensuring parent artifacts are published before downstream repos try to resolve them.
 
 Here is what the architecture looks like:
@@ -173,7 +173,7 @@ Even though the workflow YAML comes from the `.github` repo, it runs **in the co
 - `${{ github.repository }}` resolves to `fireflyframework/fireflyframework-utils`
 - `${{ secrets.GITHUB_TOKEN }}` is the token for the calling repo
 
-This is what makes the pattern so powerful — one workflow definition, 40 different execution contexts.
+This is what makes the pattern so powerful — one workflow definition, 41 different execution contexts.
 
 ### Secrets: `GITHUB_TOKEN` vs `ORG_DISPATCH_TOKEN`
 
@@ -336,14 +336,16 @@ gh workflow run dag-orchestrator.yml \
 
 ## Release Ordering and DAG Layers
 
-The 38 Java repositories are organized into 6 dependency layers. Repos in the same layer can be built/released in parallel because they do not depend on each other. Repos in layer N only depend on repos in layers 0 through N-1.
+The 39 Java repositories are organized into 6 dependency layers. Repos in the same layer can be built/released in parallel because they do not depend on each other. Repos in layer N only depend on repos in layers 0 through N-1.
+
+> **Note (26.02.04):** The addition of `fireflyframework-observability` in Layer 1 shifted several modules down one layer. Modules that consume observability (eda, client, transactional-engine, ecm) moved from Layer 1 to Layer 2. Modules that depend on those (workflow, application, ECM implementations) cascaded to Layer 3. This adds ~30s to CI but is architecturally correct.
 
 | Layer | Count | Repositories |
 |-------|-------|-------------|
 | 0 | 1 | parent |
-| 1 | 11 | bom, utils, cache, eda, ecm, idp, config-server, client, validators, plugins, transactional-engine |
-| 2 | 11 | r2dbc, cqrs, web, workflow, ecm-esignature-adobe-sign, ecm-esignature-docusign, ecm-esignature-logalty, ecm-storage-aws, ecm-storage-azure, idp-aws-cognito, idp-keycloak |
-| 3 | 6 | eventsourcing, application, idp-internal-db, core, domain, data |
+| 1 | 8 | bom, utils, cache, idp, config-server, plugins, validators, **observability** |
+| 2 | 9 | r2dbc, eda, ecm, client, transactional-engine, cqrs, web, idp-aws-cognito, idp-keycloak |
+| 3 | 12 | eventsourcing, workflow, application, idp-internal-db, core, domain, data, ecm-esignature-adobe-sign, ecm-esignature-docusign, ecm-esignature-logalty, ecm-storage-aws, ecm-storage-azure |
 | 4 | 5 | webhooks, callbacks, notifications, rule-engine, backoffice |
 | 5 | 4 | notifications-firebase, notifications-resend, notifications-sendgrid, notifications-twilio |
 
@@ -655,7 +657,7 @@ gh workflow run dag-orchestrator.yml \
 #    Layer 0: parent → wait for GitHub Packages to publish
 #    Layer 1: bom, utils, cache, ... → wait for GitHub Packages
 #    Layer 2: r2dbc, cqrs, web, ... → wait for GitHub Packages
-#    ... and so on until all 38 Java repos are released
+#    ... and so on until all 39 Java repos are released
 
 # 5. Release non-Java repos independently (they have no layer dependencies)
 cd fireflyframework-cli && git push origin main v26.02.03
@@ -778,7 +780,7 @@ Firefly Framework uses **Calendar Versioning** (CalVer) with the format `YY.MM.P
 | `MM` | Two-digit month | `02` for February |
 | `PP` | Two-digit patch | `01`, `02`, etc. |
 
-**Why CalVer instead of SemVer?** With 38 interdependent Java modules that always release together, semantic versioning creates confusion: what counts as a "major" change when 38 repos are involved? CalVer makes it immediately clear *when* a release was made, and the patch number tracks how many releases happened that month.
+**Why CalVer instead of SemVer?** With 39 interdependent Java modules that always release together, semantic versioning creates confusion: what counts as a "major" change when 39 repos are involved? CalVer makes it immediately clear *when* a release was made, and the patch number tracks how many releases happened that month.
 
 ### Version Commands
 
@@ -984,7 +986,7 @@ cd .github && git push origin main
 
 ## CI Status Dashboard
 
-A live build status dashboard for all 40 repositories is available at:
+A live build status dashboard for all 41 repositories is available at:
 
 **[CI Status Dashboard](CI_STATUS.md)**
 
