@@ -674,13 +674,13 @@ All framework repos inherit from `fireflyframework-parent`, which configures Git
 
 ### Version Immutability
 
-GitHub Packages does **not** allow overwriting an existing version. Once `26.02.01` is published for a given artifact, that version is permanent. Attempting to re-publish returns HTTP 409 Conflict.
+GitHub Packages does **not** allow overwriting an existing version. Once `26.02.02` is published for a given artifact, that version is permanent. Attempting to re-publish returns HTTP 409 Conflict.
 
 **What this means in practice:**
 - Every release must use a new version number
 - If you need to re-publish with changes, bump the version first: `flywork fwversion bump --auto`
 - The release workflow handles 409s gracefully — it logs a warning and continues to the GitHub Release creation step
-- This immutability is actually a good thing: it guarantees that version `26.02.01` always refers to the same bytes, everywhere
+- This immutability is actually a good thing: it guarantees that version `26.02.02` always refers to the same bytes, everywhere
 
 ### CI Authentication
 
@@ -713,7 +713,7 @@ flywork fwversion check
 
 ### What Happens During a Release (Step by Step)
 
-When a tag like `v26.02.01` is pushed to `fireflyframework-utils`:
+When a tag like `v26.02.02` is pushed to `fireflyframework-utils`:
 
 1. GitHub sees the tag push and triggers `release.yml` in `fireflyframework-utils`
 2. `release.yml` calls the shared `java-release.yml` from the `.github` repo
@@ -721,8 +721,8 @@ When a tag like `v26.02.01` is pushed to `fireflyframework-utils`:
    - Checks out the code at the tagged commit
    - Sets up the JDK and writes `~/.m2/settings.xml`
    - Runs `mvn deploy` to publish the JAR and POM to GitHub Packages
-   - Reads the version from `pom.xml` (e.g., `26.02.01`)
-   - Creates a GitHub Release named `v26.02.01` with auto-generated notes
+   - Reads the version from `pom.xml` (e.g., `26.02.02`)
+   - Creates a GitHub Release named `v26.02.02` with auto-generated notes
    - Uses `ORG_DISPATCH_TOKEN` to dispatch the DAG orchestrator with `mode=release` to cascade to downstream repos
 4. The DAG orchestrator computes affected repos and dispatches `release.yml` on `main` for each
 5. Each downstream repo repeats steps 1-4, cascading further until leaf repos are reached
@@ -786,9 +786,9 @@ Firefly Framework uses **Calendar Versioning** (CalVer) with the format `YY.MM.P
 **Why CalVer instead of SemVer?** With 38 interdependent Java modules that always release together, semantic versioning (major.minor.patch) creates confusion: what counts as a "major" change when 38 repos are involved? CalVer makes it immediately clear *when* a release was made, and the patch number tracks how many releases happened that month. All 38 repos share the same version number, which makes dependency management simple.
 
 **Examples:**
-- First release in January 2026: `26.02.01`
+- First release in January 2026: `26.02.02`
 - Second release in January 2026: `26.01.02`
-- First release in February 2026: `26.02.01`
+- First release in February 2026: `26.02.02`
 
 ### Version Commands
 
@@ -863,7 +863,7 @@ All Firefly Framework repositories follow a simple two-branch model:
 
 ### "Could not resolve artifact"
 
-**What you see:** `Could not find artifact org.fireflyframework:fireflyframework-xyz:jar:26.02.01`
+**What you see:** `Could not find artifact org.fireflyframework:fireflyframework-xyz:jar:26.02.02`
 
 **What it means:** Maven cannot find a framework dependency. This can happen for several reasons:
 

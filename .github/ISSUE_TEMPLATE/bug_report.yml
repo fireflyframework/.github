@@ -80,7 +80,7 @@ body:
     id: version
     attributes:
       label: Firefly Framework Version
-      placeholder: "e.g. 26.02.01"
+      placeholder: "e.g. 26.02.02"
     validations:
       required: false
 
