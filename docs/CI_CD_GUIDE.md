@@ -19,6 +19,7 @@ Everything you need to know about how Firefly Framework builds, tests, publishes
 11. [Branch Strategy](#branch-strategy)
 12. [Troubleshooting](#troubleshooting)
 13. [CI Status Dashboard](#ci-status-dashboard)
+14. [CI/CD Changelog](CI_CD_CHANGELOG.md)
 
 ---
 
@@ -71,10 +72,12 @@ Here is what the architecture looks like:
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**Key design decisions (26.02.03):**
+**Key design decisions:**
 - **CI does not cascade.** Pushing to `develop` builds only the affected repo. Use `flywork build --affected` locally if you need to test downstream impact.
-- **Releases cascade via the DAG orchestrator**, which dispatches layer by layer — waiting for each layer to complete before starting the next.
-- **No duplicate workflow runs.** Tag pushes trigger `release.yml` directly. The DAG orchestrator is used for coordinated multi-repo releases, not auto-triggered from individual releases.
+- **Releases cascade via the DAG orchestrator**, which dispatches layer by layer — waiting for each layer's GitHub Packages to publish before starting the next.
+- **No duplicate workflow runs.** Tag pushes trigger `release.yml` only. Pushes to `main` trigger `ci.yml` only. There is no overlap.
+- **Push `.github` first.** Before any release, push the `.github` repo so shared workflows are up to date on the remote. All other repos reference `@main`.
+- **GitHub Packages is the layer gate.** Downstream repos resolve from GitHub Packages during builds. Maven Central publishes in parallel but does not block downstream layers.
 
 ---
 
@@ -295,7 +298,7 @@ This ensures that when layer 2 repos try to resolve their dependencies, all laye
 
 ### Why Layer-by-Layer Matters
 
-The 26.02.03 release failed because all 38 repos were dispatched simultaneously. Downstream repos tried to resolve parent POMs that hadn't been published yet, causing cascading build failures. Layer-by-layer dispatch eliminates this race condition.
+Without layer-by-layer dispatch, all repos would be dispatched simultaneously. Downstream repos would try to resolve parent POMs that haven't been published yet, causing cascading build failures. Layer-by-layer dispatch eliminates this race condition.
 
 ### Permissions and Tokens
 
@@ -347,12 +350,12 @@ The 38 Java repositories are organized into 6 dependency layers. Repos in the sa
 **Why layers matter:** If you change `fireflyframework-utils` (layer 1), everything in layers 2-5 is potentially affected. If you change `fireflyframework-notifications` (layer 4), only layer 5 (the notification adapters) is affected.
 
 **During a release**, the DAG orchestrator ensures:
-1. Layer 0 (`parent`) is published and confirmed on GitHub Packages
+1. Layer 0 (`parent`) is published and confirmed on **GitHub Packages** (the layer gate)
 2. Only then are layer 1 repos dispatched
-3. Layer 1 completes → layer 2 starts
+3. Layer 1 GitHub Packages complete → layer 2 starts
 4. And so on until layer 5
 
-This eliminates the race conditions that caused the 26.02.03 release failures.
+**Note:** Maven Central publishing happens in parallel but is NOT the layer gate — downstream repos resolve from GitHub Packages during builds, not Maven Central. See [Release Process](#release-process) for details.
 
 You can always get the current DAG with:
 
@@ -483,6 +486,40 @@ jobs:
     secrets: inherit
 ```
 
+**Frontend repo (Angular/NX):**
+
+```yaml
+name: CI
+on:
+  push:
+    branches: [develop, main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  pull_request:
+    branches: [develop, main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx nx build
+      - run: npx nx test
+```
+
 > **Important:** All repos MUST include `secrets: inherit`. Without it, org-level secrets like `SONATYPE_USERNAME`, `GPG_PRIVATE_KEY`, and `ORG_DISPATCH_TOKEN` are not passed to the shared workflows.
 
 ### Step 3: Create the Release Workflow
@@ -586,43 +623,107 @@ GitHub Packages does **not** allow overwriting an existing version. Once `26.02.
 
 ## Release Process
 
-### The Standard Release Flow
+### Critical Pre-Requisite: Push `.github` First
 
-The recommended way to release the entire framework:
+**Before releasing any repo**, always push changes to the `.github` repository first. All repos reference shared workflows from `.github@main`, so the latest shared workflow definitions must be available on the remote before any CI or release workflow triggers.
+
+```bash
+cd .github && git push origin main
+```
+
+Forgetting this step means release/CI workflows will run against stale shared workflow definitions.
+
+### Approach 1: Automated Release via DAG Orchestrator (Recommended)
+
+The DAG orchestrator handles the layer-by-layer ordering automatically:
 
 ```bash
 # 1. Bump version across all repos, commit, merge to main, tag
 flywork fwversion bump --auto --commit --tag --push
 
-# 2. Use the DAG orchestrator for ordered release
+# 2. Ensure .github repo is pushed first (if it has changes)
+cd .github && git push origin main
+
+# 3. Use the DAG orchestrator for ordered release
 gh workflow run dag-orchestrator.yml \
   -f trigger-repo=fireflyframework-parent \
   -f mode=release \
   -f build-all=true \
   -R fireflyframework/.github
 
-# 3. The orchestrator dispatches repos layer by layer:
-#    Layer 0: parent → wait for completion
-#    Layer 1: bom, utils, cache, ... → wait for completion
-#    Layer 2: r2dbc, cqrs, web, ... → wait for completion
-#    ... and so on until all repos are released
+# 4. The orchestrator dispatches repos layer by layer:
+#    Layer 0: parent → wait for GitHub Packages to publish
+#    Layer 1: bom, utils, cache, ... → wait for GitHub Packages
+#    Layer 2: r2dbc, cqrs, web, ... → wait for GitHub Packages
+#    ... and so on until all 38 Java repos are released
 
-# 4. Verify everything succeeded
+# 5. Release non-Java repos independently (they have no layer dependencies)
+cd fireflyframework-cli && git push origin main v26.02.03
+cd fireflyframework-genai && git push origin main v26.02.03
+
+# 6. Verify everything succeeded
 flywork fwversion check
+
+# 7. Sync develop with main across all repos (see Branch Strategy section)
 ```
+
+### Approach 2: Manual Layer-by-Layer Tag Push
+
+For maximum control (e.g., debugging release issues or when the orchestrator is not available), you can push tags manually layer by layer. Tag pushes trigger `release.yml` directly.
+
+```bash
+# 1. Push .github first (shared workflows)
+cd .github && git push origin main
+
+# 2. Layer 0: parent
+cd fireflyframework-parent && git push origin main v26.02.03
+# Wait for GitHub Packages job to complete:
+gh run watch $(gh run list -w release.yml -L1 --json databaseId -q '.[0].databaseId' -R fireflyframework/fireflyframework-parent) -R fireflyframework/fireflyframework-parent
+
+# 3. Layer 1: bom, utils, cache, eda, ecm, idp, ...
+for repo in fireflyframework-bom fireflyframework-utils fireflyframework-cache ...; do
+  cd "$repo" && git push origin main v26.02.03 && cd ..
+done
+# Wait for all Layer 1 GitHub Packages jobs to complete before continuing
+
+# 4. Layer 2, 3, 4, 5: repeat the pattern
+# ... push all repos in the layer, wait for GitHub Packages, proceed to next layer
+
+# 5. Non-Java repos (no layer dependencies)
+cd fireflyframework-cli && git push origin main v26.02.03
+cd fireflyframework-genai && git push origin main v26.02.03
+```
+
+### GitHub Packages Is the Layer Gate (Not Maven Central)
+
+**This is a critical detail.** When waiting between layers, you only need to wait for the **GitHub Packages** job to complete — NOT Maven Central. Here is why:
+
+- **Downstream repos resolve dependencies from GitHub Packages** during their CI/release builds (configured via `settings.xml` in the shared workflow).
+- **Maven Central** publishes in parallel but is much slower (`waitUntil: published` can take 5-15 minutes for Sonatype validation). Downstream repos never resolve from Maven Central during build.
+- Maven Central publishing completes independently in the background. The `waitUntil: published` setting ensures CI reports failure if validation fails, but it does not block downstream layer dispatch.
 
 ### What Happens During a Release (Step by Step)
 
-When the DAG orchestrator dispatches `release.yml` for a repo:
+When `release.yml` is triggered for a repo (either by tag push or DAG orchestrator dispatch):
 
 1. GitHub triggers `release.yml` in the target repo
 2. `release.yml` calls the shared `java-release.yml` from the `.github` repo
 3. The shared workflow runs two parallel jobs:
-   - **GitHub Packages:** Deploys artifacts with multi-module 409 handling
-   - **Maven Central:** Checks for existing publication, then deploys with GPG signing
+   - **GitHub Packages:** Deploys artifacts with multi-module 409 handling (fast — typically 1-3 minutes)
+   - **Maven Central:** Checks for existing publication, then deploys with GPG signing and waits for Sonatype validation (slow — typically 5-15 minutes)
 4. If both succeed, the post-release job:
    - Reads the version from `pom.xml`
    - Creates a GitHub Release named `v<version>` with auto-generated notes
+
+### Non-Java Repos
+
+Non-Java repos (`fireflyframework-cli`, `fireflyframework-genai`, `flyfront`) do **not** participate in the Java DAG layer ordering:
+
+- **CLI** (Go): Tag push triggers `go-release.yml`, which cross-compiles for 6 platforms and uploads binaries to GitHub Release. No Maven dependency chain.
+- **GenAI** (Python): Tag push triggers `python-release.yml`, which builds wheel/sdist and uploads to GitHub Release. No Maven dependency chain.
+- **Flyfront** (Angular/NX): CI only — no release workflow currently. Uses standard `npm ci && npm run build && npm test`.
+
+These can be pushed at any time during or after the Java release — they have no ordering constraints.
 
 ### Manual Release Trigger
 
@@ -649,6 +750,12 @@ gh release list -R fireflyframework/fireflyframework-utils -L 1
 
 # Check the latest release workflow run
 gh run list -R fireflyframework/fireflyframework-utils -w release.yml -L 1
+
+# Watch a release in real time
+gh run watch -R fireflyframework/fireflyframework-utils $(gh run list -R fireflyframework/fireflyframework-utils -w release.yml -L1 --json databaseId -q '.[0].databaseId')
+
+# Check GitHub Packages job specifically (the layer gate)
+gh run view -R fireflyframework/fireflyframework-parent $(gh run list -R fireflyframework/fireflyframework-parent -w release.yml -L1 --json databaseId -q '.[0].databaseId') --json jobs --jq '.jobs[] | select(.name | test("github-packages")) | {name, status, conclusion}'
 
 # Check all repos at once
 for repo in fireflyframework-parent fireflyframework-bom fireflyframework-utils; do
@@ -691,19 +798,49 @@ flywork fwversion families          # View release history
 
 All Firefly Framework repositories follow a simple two-branch model:
 
-| Branch | Purpose | CI behavior |
-|--------|---------|-------------|
-| `develop` | Active development | CI runs on every push |
-| `main` | Stable releases | CI runs on push. Release workflows run here |
+| Branch | Purpose | CI behavior | Release behavior |
+|--------|---------|-------------|-----------------|
+| `develop` | Active development | CI runs on every push | Not used for releases |
+| `main` | Stable releases | CI runs on push | Tag pushes trigger `release.yml` |
 
-### Typical Workflow
+### Typical Development Workflow
 
 1. Create a feature branch from `develop`
 2. Open a PR to `develop` — CI runs (no cascade)
 3. Merge the PR — CI runs on the merge commit
 4. When ready to release: merge `develop` into `main`
-5. Push version tags — release workflows trigger automatically
+5. Push version tags on `main` — release workflows trigger automatically
 6. Use DAG orchestrator for coordinated multi-repo releases
+
+### Release Workflow (Detailed)
+
+For a full framework release, the branch flow is:
+
+```
+1. Version bump on develop (all repos)
+   ↓
+2. Merge develop → main (all repos)
+   ↓
+3. Tag v{version} on main (all repos)
+   ↓
+4. Push .github first, then push tags layer by layer
+   ↓
+5. Wait for releases to complete
+   ↓
+6. Sync develop = main (all repos)
+```
+
+**Step 6 is critical.** After a release, `develop` must be synced with `main` so that both branches contain the same release content. This prevents divergence:
+
+```bash
+# For each repo:
+git checkout develop
+git merge --ff-only main   # Fast-forward merge — no merge commit
+git push origin develop
+git checkout main           # Return to main
+```
+
+Use `--ff-only` to ensure it is a clean fast-forward. If it fails, it means `develop` has commits not in `main` — investigate before force-merging.
 
 ### Why Two Branches?
 
@@ -711,6 +848,19 @@ All Firefly Framework repositories follow a simple two-branch model:
 - `main` is the release branch. Shared workflows are referenced with `@main`, so `main` must always be stable.
 
 **Merging to main should be a deliberate action**, not automatic. The release workflow uses `main` as its source, so only merge develop into main when you are ready to publish.
+
+### Trigger Separation: No Duplicate Runs
+
+A key design decision is that **different events trigger different workflows** with no overlap:
+
+| Event | Triggers | Does NOT trigger |
+|-------|----------|-----------------|
+| Push to `develop` or `main` | `ci.yml` | `release.yml` |
+| Pull request | `ci.yml` | `release.yml` |
+| Tag push (`v*`) | `release.yml` | `ci.yml` |
+| `workflow_dispatch` | Whichever workflow is dispatched | The other |
+
+This means pushing a tag **only** triggers the release — it does **not** also run CI. And pushing to `main` only runs CI — it does not trigger a release. This prevents the duplicate workflow runs that plagued earlier releases.
 
 ---
 
@@ -749,26 +899,17 @@ All Firefly Framework repositories follow a simple two-branch model:
 
 **If you need new content at the same version:** You cannot. Bump the version: `flywork fwversion bump --auto --push`
 
-### Multi-Module 409 Cascade (Fixed in 26.02.03)
+### Maven Central Deploy Fails or Never Appears
 
-**What happened in 26.02.03:** When a multi-module repo's parent POM got a 409, Maven's reactor banned all child modules from deploying. 14 sub-modules across 4 repos failed to publish.
+**What you see:** Maven Central deploy returns an error, or the artifact uploads but never appears on Maven Central.
 
-**How it's fixed:** The release workflow now uses a two-phase deploy strategy:
-1. Deploy parent POM with `-N` (non-recursive)
-2. Deploy children with `-pl '!.'` (exclude root)
+**Common causes:**
 
-This way, a 409 on the parent POM is handled independently and does not prevent child modules from deploying.
+1. **Missing `<name>` or `<description>` in pom.xml** — Maven Central requires every module to have both. The parent POM provides `<url>`, `<licenses>`, `<developers>`, and `<scm>`, but `<name>` and `<description>` must be set per module.
 
-### Maven Central Validation Failures (Fixed in 26.02.03)
+2. **GPG signing issue** — Maven Central requires GPG signatures. Ensure `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` are set as org secrets.
 
-**What happened in 26.02.03:** The `waitUntil: uploaded` configuration in the parent POM caused the Maven Central deploy step to return success as soon as the artifact was uploaded — before Sonatype validated it. 5 artifacts failed validation and never appeared on Maven Central, but CI showed green.
-
-**How it's fixed:** Changed `waitUntil` to `published` in both `fireflyframework-parent/pom.xml` and `fireflyframework-bom/pom.xml`. The deploy step now waits for validation to complete and fails if validation fails.
-
-**Required pom.xml elements for Maven Central:**
-- `<name>` — Required on every module
-- `<description>` — Required on every module
-- `<url>`, `<licenses>`, `<developers>`, `<scm>` — Inherited from parent POM
+3. **Sonatype validation failure** — The `waitUntil: published` setting in the parent/BOM POMs ensures the deploy step waits for Sonatype to validate the artifact. If validation fails (missing metadata, bad signatures), the workflow will fail with a clear error.
 
 ### "Permission denied" or "Resource not accessible"
 
@@ -793,21 +934,37 @@ This way, a 409 on the parent POM is handled independently and does not prevent 
 
 3. **`ORG_DISPATCH_TOKEN` is missing or expired** — The DAG orchestrator uses this token for cross-repo dispatch. Check the org secret at Organization Settings → Secrets and variables → Actions → `ORG_DISPATCH_TOKEN`.
 
+### Stale Shared Workflows
+
+**What you see:** A CI or release run uses an old version of the shared workflow (e.g., missing a fix you just made to `java-release.yml`).
+
+**Why it happens:** The `.github` repo was not pushed before the other repos triggered their workflows. Since all repos use `@main`, they fetch the shared workflow from the remote `.github` repo's `main` branch.
+
+**Fix:** Always push `.github` to the remote **before** pushing any other repo:
+
+```bash
+cd .github && git push origin main
+# Then push other repos
+```
+
 ### Build Order Issues (Release)
 
 **What you see:** A downstream repo fails during release because its dependency is not in GitHub Packages yet.
 
 **Why it happens:** The dependency was not published before the downstream repo tried to build. This is the race condition that occurs when all repos are released simultaneously.
 
-**Fix:** Always use the DAG orchestrator for multi-repo releases. It dispatches layer by layer, waiting for each layer to complete before starting the next:
+**Fix:** Use layer-by-layer release ordering. Two options:
 
-```bash
-gh workflow run dag-orchestrator.yml \
-  -f trigger-repo=fireflyframework-parent \
-  -f mode=release \
-  -f build-all=true \
-  -R fireflyframework/.github
-```
+1. **DAG orchestrator (automated):** Handles layer ordering automatically:
+   ```bash
+   gh workflow run dag-orchestrator.yml \
+     -f trigger-repo=fireflyframework-parent \
+     -f mode=release \
+     -f build-all=true \
+     -R fireflyframework/.github
+   ```
+
+2. **Manual layer-by-layer push:** Push tags layer by layer, waiting for GitHub Packages to complete between each layer. See [Release Process](#release-process) for the full procedure.
 
 ### Tests Pass Locally but Fail in CI
 
@@ -817,11 +974,11 @@ gh workflow run dag-orchestrator.yml \
 3. **Testcontainers** — Some tests need Docker. GitHub Actions runners have Docker, but your local machine might not.
 4. **Environment variables** — CI does not have the same env vars as your machine.
 
-### Failed Builds Not Retried
+### `flywork build` Does Not Retry a Repo
 
-**What happened before 26.02.03:** The `flywork build` command recorded the SHA even for failed builds, so `DetectChanges` would not pick them up on retry.
+**What you see:** A repo failed to build previously, but `flywork build` skips it on the next run.
 
-**How it's fixed:** `LastSHA()` now returns empty string for repos with `status: "failed"`, ensuring failed builds are always retried regardless of whether the commit SHA has changed.
+**What to check:** Run `flywork build --retry-failed` to force re-evaluation of previously failed repos. The CLI tracks build status per repo — failed repos are automatically retried, but if something is stuck, the `--retry-failed` flag resets the tracking.
 
 ---
 
@@ -832,3 +989,9 @@ A live build status dashboard for all 40 repositories is available at:
 **[CI Status Dashboard](CI_STATUS.md)**
 
 The dashboard shows every repo grouped by category (Foundation, Core Modules, Data & Persistence, etc.) with descriptions and CI badge status. Use it to quickly check which repos are passing and which need attention.
+
+---
+
+## CI/CD Changelog
+
+For a history of CI/CD changes, fixes, and improvements (including details about issues encountered in previous releases and how they were resolved), see the **[CI/CD Changelog](CI_CD_CHANGELOG.md)**.
