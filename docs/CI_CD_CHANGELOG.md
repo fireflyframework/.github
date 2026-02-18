@@ -4,7 +4,7 @@ History of CI/CD changes, fixes, and improvements across the Firefly Framework.
 
 ---
 
-## 26.02.04 — Centralized Observability
+## 26.02.05 — Centralized Observability
 
 Released: February 2026
 
@@ -62,11 +62,11 @@ Both gRPC and HTTP/protobuf senders are on the classpath. Default: gRPC on port 
 | fireflyframework-cqrs | Extend base classes for metrics and health |
 | fireflyframework-workflow | Extend base classes, fix `workflowId` → `workflow.id` |
 | fireflyframework-eventsourcing | Delete direct OTel config, rewrite MDC context, fix prefix |
-| fireflyframework-core | Move actuator configs to observability, fix WebClient trace propagation |
-| fireflyframework-data | Fix ThreadLocal observation access, extend base classes |
+| fireflyframework-starter-core | Move actuator configs to observability, fix WebClient trace propagation |
+| fireflyframework-starter-data | Fix ThreadLocal observation access, extend base classes |
 | fireflyframework-webhooks | Rewrite tracing filter, fix prefix `webhooks.*` → `firefly.webhooks.*` |
-| fireflyframework-application | Extend base classes, replace logback |
-| fireflyframework-domain | Add observability dep, replace logback |
+| fireflyframework-starter-application | Extend base classes, replace logback |
+| fireflyframework-starter-domain | Add observability dep, replace logback |
 | fireflyframework-web | Add observability dep |
 | fireflyframework-ecm | Add observability dep |
 | fireflyframework-backoffice | Add observability dep |

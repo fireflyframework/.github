@@ -25,8 +25,8 @@ Complete reference of all framework modules, organized by capability.
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-core](https://github.com/fireflyframework/fireflyframework-core) | Actuator configuration, health indicators, service registry, web client resilience, and observability foundations |
-| [fireflyframework-domain](https://github.com/fireflyframework/fireflyframework-domain) | Domain-Driven Design primitives: base entities, value objects, aggregate roots, and domain event publishing |
+| [fireflyframework-starter-core](https://github.com/fireflyframework/fireflyframework-starter-core) | Starter for core/infrastructure-layer microservices — WebClient utilities, service discovery, messaging bridges, enhanced actuator, resilience patterns |
+| [fireflyframework-starter-domain](https://github.com/fireflyframework/fireflyframework-starter-domain) | Starter for domain-layer microservices with DDD patterns, CQRS, SAGA orchestration, and event-driven architecture |
 | [fireflyframework-utils](https://github.com/fireflyframework/fireflyframework-utils) | Shared utilities, template rendering, and common helper functions |
 | [fireflyframework-validators](https://github.com/fireflyframework/fireflyframework-validators) | Annotation-based validators for financial, identity, and general-purpose data formats |
 | [fireflyframework-plugins](https://github.com/fireflyframework/fireflyframework-plugins) | Lightweight plugin system with annotation-based discovery and hot-loadable JAR/Spring Bean loaders |
@@ -35,7 +35,7 @@ Complete reference of all framework modules, organized by capability.
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-application](https://github.com/fireflyframework/fireflyframework-application) | Application layer library enabling business process-oriented microservices with plugin architecture, security aspects, and configuration resolution |
+| [fireflyframework-starter-application](https://github.com/fireflyframework/fireflyframework-starter-application) | Starter for application-layer microservices — business process orchestration, context management, security, authorization, plugin system, and session management for application-tier microservices |
 | [fireflyframework-backoffice](https://github.com/fireflyframework/fireflyframework-backoffice) | Backoffice and internal portal extension with context resolution and resource controller abstractions |
 
 ## Reactive Infrastructure
@@ -56,7 +56,7 @@ Complete reference of all framework modules, organized by capability.
 | [fireflyframework-eventsourcing](https://github.com/fireflyframework/fireflyframework-eventsourcing) | Event Sourcing with reactive event store, snapshots, projections, and outbox pattern |
 | [fireflyframework-transactional-engine](https://github.com/fireflyframework/fireflyframework-transactional-engine) | Distributed transactions via Saga and TCC with compensation, backpressure, and persistence |
 | [fireflyframework-workflow](https://github.com/fireflyframework/fireflyframework-workflow) | Workflow orchestration with AOP-based definitions, state persistence, and scheduling |
-| [fireflyframework-data](https://github.com/fireflyframework/fireflyframework-data) | Data processing with job orchestration, enrichment pipelines, and batch/async workloads |
+| [fireflyframework-starter-data](https://github.com/fireflyframework/fireflyframework-starter-data) | Starter for data-processing microservices — job orchestration, data enrichers, CQRS, event-driven architecture |
 
 ## Business Rules
 
