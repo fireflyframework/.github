@@ -68,7 +68,7 @@ flywork setup
 ```
 
 This command:
-- Clones all 39 framework repositories in dependency order
+- Clones all 38 framework repositories in dependency order
 - Installs every module to your local Maven cache (`~/.m2`)
 - Takes approximately 15-20 minutes on a fast connection
 

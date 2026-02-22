@@ -27,7 +27,7 @@ Everything you need to know about how Firefly Framework builds, tests, publishes
 
 Firefly Framework is not a single project — it is **40 interconnected repositories** that form a dependency graph (DAG). Some repos are foundations that many others depend on (like `parent`, `utils`, `observability`, or `bom`), while others are leaves that depend on everything below them (like `notifications-firebase` or `backoffice`).
 
-This creates a real engineering challenge: **when you change something in a foundational repo, every repo that depends on it — directly or transitively — needs to be rebuilt and re-tested to make sure nothing broke.** Doing this manually across 41 repos is not realistic.
+This creates a real engineering challenge: **when you change something in a foundational repo, every repo that depends on it — directly or transitively — needs to be rebuilt and re-tested to make sure nothing broke.** Doing this manually across 40 repos is not realistic.
 
 Our CI/CD system solves this with two key ideas:
 
@@ -173,7 +173,7 @@ Even though the workflow YAML comes from the `.github` repo, it runs **in the co
 - `${{ github.repository }}` resolves to `fireflyframework/fireflyframework-utils`
 - `${{ secrets.GITHUB_TOKEN }}` is the token for the calling repo
 
-This is what makes the pattern so powerful — one workflow definition, 41 different execution contexts.
+This is what makes the pattern so powerful — one workflow definition, 40 different execution contexts.
 
 ### Secrets: `GITHUB_TOKEN` vs `ORG_DISPATCH_TOKEN`
 
@@ -344,7 +344,7 @@ The 38 Java repositories are organized into 6 dependency layers. Repos in the sa
 |-------|-------|-------------|
 | 0 | 1 | parent |
 | 1 | 8 | bom, utils, cache, idp, config-server, plugins, validators, **observability** |
-| 2 | 8 | r2dbc, eda, ecm, client, **orchestration**, cqrs, web, idp-aws-cognito, idp-keycloak |
+| 2 | 9 | r2dbc, eda, ecm, client, **orchestration**, cqrs, web, idp-aws-cognito, idp-keycloak |
 | 3 | 11 | eventsourcing, application, idp-internal-db, core, domain, data, ecm-esignature-adobe-sign, ecm-esignature-docusign, ecm-esignature-logalty, ecm-storage-aws, ecm-storage-azure |
 | 4 | 5 | webhooks, callbacks, notifications, rule-engine, backoffice |
 | 5 | 4 | notifications-firebase, notifications-resend, notifications-sendgrid, notifications-twilio |
@@ -780,7 +780,7 @@ Firefly Framework uses **Calendar Versioning** (CalVer) with the format `YY.MM.P
 | `MM` | Two-digit month | `02` for February |
 | `PP` | Two-digit patch | `01`, `02`, etc. |
 
-**Why CalVer instead of SemVer?** With 39 interdependent Java modules that always release together, semantic versioning creates confusion: what counts as a "major" change when 39 repos are involved? CalVer makes it immediately clear *when* a release was made, and the patch number tracks how many releases happened that month.
+**Why CalVer instead of SemVer?** With 38 interdependent Java modules that always release together, semantic versioning creates confusion: what counts as a "major" change when 39 repos are involved? CalVer makes it immediately clear *when* a release was made, and the patch number tracks how many releases happened that month.
 
 ### Version Commands
 

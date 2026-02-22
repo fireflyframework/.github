@@ -184,7 +184,7 @@ Where `<type>` is one of:
 ### Examples
 
 ```
-feat: add retry policy to transactional engine
+feat: add retry policy to orchestration engine
 fix: resolve NPE in R2DBC connection pool cleanup
 docs: update module catalog with new webhooks module
 refactor: extract saga step builder into shared utility
