@@ -4,6 +4,57 @@ History of CI/CD changes, fixes, and improvements across the Firefly Framework.
 
 ---
 
+## 26.02.06 — Unified Orchestration Engine
+
+Released: February 2026
+
+### Module Consolidation
+
+**`fireflyframework-orchestration`** — Unified reactive orchestration engine combining Workflow, Saga, and TCC patterns into a single module with a shared core layer.
+
+This release **archives** two repositories:
+- `fireflyframework-transactional-engine` (Saga + TCC) — **archived, marked for deletion**
+- `fireflyframework-workflow` (Workflow) — **archived, marked for deletion**
+
+Both are superseded by [`fireflyframework-orchestration`](https://github.com/fireflyframework/fireflyframework-orchestration).
+
+### What Changed
+
+**1. Unified engine replaces two separate modules**
+All Workflow, Saga, and TCC capabilities are now in `fireflyframework-orchestration` with a shared core layer for persistence, observability, retry, event integration, backpressure, validation, execution reporting, and event sourcing.
+
+**2. New capabilities added during consolidation**
+- Execution reporting (`ExecutionReport`) attached to `SagaResult`, `TccResult`, and `ExecutionState`
+- Backpressure strategies wired into fan-out and parallel composition execution
+- Compensation error handlers: fail-fast, retry-with-backoff, log-and-continue, composite, robust
+- Saga composition with DAG topology, data flow, visualization, and templates
+- TCC composition with parallel execution and data mapping
+- Validation framework for definition integrity checks at registration time
+- Actuator metrics endpoint (`/actuator/orchestration-metrics`)
+- Event sourcing persistence with snapshots and projections
+- Comprehensive documentation: 58 sections across 7 reference documents
+
+**3. Design alignment across all three engines**
+All engines now follow identical lifecycle patterns: persist → publish → onStart → execute → onCompleted → compensate → DLQ → callbacks → suppress → persist → publish. Top-level `onErrorResume` safety nets ensure engines never propagate raw errors to callers.
+
+### DAG Changes
+
+- Removed `transactional-engine` (Layer 2) and `workflow` (Layer 3)
+- Added `orchestration` to Layer 2
+- Total repos: 39 → 38 Java (41 → 40 including CLI and GenAI)
+
+### Documentation Updates
+
+- Updated issue templates (bug_report.yml, feature_request.yml) — replaced `transactional-engine` and `workflow` with `orchestration`
+- Updated `MODULE_CATALOG.md` — consolidated two entries into one
+- Updated `CI_STATUS.md` — consolidated two CI badges into one
+- Updated `GETTING_STARTED.md` — replaced `transactional-engine` dependency with `orchestration`
+- Updated `CI_CD_GUIDE.md` — DAG layers table, repo counts (41 → 40)
+- Updated organization profile README — version bump, repo count, highlights
+- Updated `CONTRIBUTING.md` — version reference
+
+---
+
 ## 26.02.05 — Centralized Observability
 
 Released: February 2026

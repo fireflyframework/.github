@@ -54,8 +54,7 @@ Complete reference of all framework modules, organized by capability.
 | [fireflyframework-eda](https://github.com/fireflyframework/fireflyframework-eda) | Event-Driven Architecture with Kafka/RabbitMQ, dead-letter queues, and Protobuf serialization |
 | [fireflyframework-cqrs](https://github.com/fireflyframework/fireflyframework-cqrs) | CQRS implementation with command/query bus, authorization, caching, and metrics |
 | [fireflyframework-eventsourcing](https://github.com/fireflyframework/fireflyframework-eventsourcing) | Event Sourcing with reactive event store, snapshots, projections, and outbox pattern |
-| [fireflyframework-transactional-engine](https://github.com/fireflyframework/fireflyframework-transactional-engine) | Distributed transactions via Saga and TCC with compensation, backpressure, and persistence |
-| [fireflyframework-workflow](https://github.com/fireflyframework/fireflyframework-workflow) | Workflow orchestration with AOP-based definitions, state persistence, and scheduling |
+| [fireflyframework-orchestration](https://github.com/fireflyframework/fireflyframework-orchestration) | Unified reactive orchestration engine combining Workflow, Saga, and TCC patterns with shared persistence, observability, backpressure, validation, execution reporting, and event sourcing |
 | [fireflyframework-starter-data](https://github.com/fireflyframework/fireflyframework-starter-data) | Starter for data-processing microservices — job orchestration, data enrichers, CQRS, event-driven architecture |
 
 ## Business Rules

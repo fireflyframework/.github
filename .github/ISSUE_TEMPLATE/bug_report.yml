@@ -14,7 +14,7 @@ body:
         - cqrs
         - eda
         - eventsourcing
-        - transactional-engine
+        - orchestration
         - web
         - cache
         - r2dbc
@@ -28,7 +28,6 @@ body:
         - rule-engine
         - webhooks
         - callbacks
-        - workflow
         - config-server
         - validators
         - utils

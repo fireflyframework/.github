@@ -1,6 +1,6 @@
 # CI/CD Configuration Guide
 
-Everything you need to know about how Firefly Framework builds, tests, publishes, and releases its 41 repositories — and how to set it up for new ones.
+Everything you need to know about how Firefly Framework builds, tests, publishes, and releases its 40 repositories — and how to set it up for new ones.
 
 ---
 
@@ -25,13 +25,13 @@ Everything you need to know about how Firefly Framework builds, tests, publishes
 
 ## The Big Picture
 
-Firefly Framework is not a single project — it is **41 interconnected repositories** that form a dependency graph (DAG). Some repos are foundations that many others depend on (like `parent`, `utils`, `observability`, or `bom`), while others are leaves that depend on everything below them (like `notifications-firebase` or `backoffice`).
+Firefly Framework is not a single project — it is **40 interconnected repositories** that form a dependency graph (DAG). Some repos are foundations that many others depend on (like `parent`, `utils`, `observability`, or `bom`), while others are leaves that depend on everything below them (like `notifications-firebase` or `backoffice`).
 
 This creates a real engineering challenge: **when you change something in a foundational repo, every repo that depends on it — directly or transitively — needs to be rebuilt and re-tested to make sure nothing broke.** Doing this manually across 41 repos is not realistic.
 
 Our CI/CD system solves this with two key ideas:
 
-1. **Shared workflows** — All build logic lives in one place (the `.github` repo). Update it once, all 41 repos get the change.
+1. **Shared workflows** — All build logic lives in one place (the `.github` repo). Update it once, all 40 repos get the change.
 2. **DAG-aware release ordering** — The DAG orchestrator dispatches releases **layer by layer**, ensuring parent artifacts are published before downstream repos try to resolve them.
 
 Here is what the architecture looks like:
@@ -336,16 +336,16 @@ gh workflow run dag-orchestrator.yml \
 
 ## Release Ordering and DAG Layers
 
-The 39 Java repositories are organized into 6 dependency layers. Repos in the same layer can be built/released in parallel because they do not depend on each other. Repos in layer N only depend on repos in layers 0 through N-1.
+The 38 Java repositories are organized into 6 dependency layers. Repos in the same layer can be built/released in parallel because they do not depend on each other. Repos in layer N only depend on repos in layers 0 through N-1.
 
-> **Note (26.02.05):** The addition of `fireflyframework-observability` in Layer 1 shifted several modules down one layer. Modules that consume observability (eda, client, transactional-engine, ecm) moved from Layer 1 to Layer 2. Modules that depend on those (workflow, application, ECM implementations) cascaded to Layer 3. This adds ~30s to CI but is architecturally correct.
+> **Note (26.02.06):** `fireflyframework-transactional-engine` and `fireflyframework-workflow` have been archived and superseded by the unified `fireflyframework-orchestration` module. The orchestration module occupies Layer 2 (depends on observability, cache, eda). Total Java repos: 39 → 38 (41 → 40 total).
 
 | Layer | Count | Repositories |
 |-------|-------|-------------|
 | 0 | 1 | parent |
 | 1 | 8 | bom, utils, cache, idp, config-server, plugins, validators, **observability** |
-| 2 | 9 | r2dbc, eda, ecm, client, transactional-engine, cqrs, web, idp-aws-cognito, idp-keycloak |
-| 3 | 12 | eventsourcing, workflow, application, idp-internal-db, core, domain, data, ecm-esignature-adobe-sign, ecm-esignature-docusign, ecm-esignature-logalty, ecm-storage-aws, ecm-storage-azure |
+| 2 | 8 | r2dbc, eda, ecm, client, **orchestration**, cqrs, web, idp-aws-cognito, idp-keycloak |
+| 3 | 11 | eventsourcing, application, idp-internal-db, core, domain, data, ecm-esignature-adobe-sign, ecm-esignature-docusign, ecm-esignature-logalty, ecm-storage-aws, ecm-storage-azure |
 | 4 | 5 | webhooks, callbacks, notifications, rule-engine, backoffice |
 | 5 | 4 | notifications-firebase, notifications-resend, notifications-sendgrid, notifications-twilio |
 
@@ -613,13 +613,13 @@ The two-phase approach prevents the reactor ban cascade: if the parent POM alrea
 
 ### Version Immutability
 
-GitHub Packages does **not** allow overwriting an existing version. Once `26.02.05` is published for a given artifact, that version is permanent. Attempting to re-publish returns HTTP 409 Conflict.
+GitHub Packages does **not** allow overwriting an existing version. Once `26.02.06` is published for a given artifact, that version is permanent. Attempting to re-publish returns HTTP 409 Conflict.
 
 **What this means in practice:**
 - Every release must use a new version number
 - If you need to re-publish with changes, bump the version first: `flywork fwversion bump --auto`
 - The release workflow handles 409s gracefully — it logs a warning and continues
-- This immutability is a good thing: it guarantees that version `26.02.05` always refers to the same bytes, everywhere
+- This immutability is a good thing: it guarantees that version `26.02.06` always refers to the same bytes, everywhere
 
 ---
 
@@ -657,11 +657,11 @@ gh workflow run dag-orchestrator.yml \
 #    Layer 0: parent → wait for GitHub Packages to publish
 #    Layer 1: bom, utils, cache, ... → wait for GitHub Packages
 #    Layer 2: r2dbc, cqrs, web, ... → wait for GitHub Packages
-#    ... and so on until all 39 Java repos are released
+#    ... and so on until all 38 Java repos are released
 
 # 5. Release non-Java repos independently (they have no layer dependencies)
-cd fireflyframework-cli && git push origin main v26.02.05
-cd fireflyframework-genai && git push origin main v26.02.05
+cd fireflyframework-cli && git push origin main v26.02.06
+cd fireflyframework-genai && git push origin main v26.02.06
 
 # 6. Verify everything succeeded
 flywork fwversion check
@@ -678,13 +678,13 @@ For maximum control (e.g., debugging release issues or when the orchestrator is 
 cd .github && git push origin main
 
 # 2. Layer 0: parent
-cd fireflyframework-parent && git push origin main v26.02.05
+cd fireflyframework-parent && git push origin main v26.02.06
 # Wait for GitHub Packages job to complete:
 gh run watch $(gh run list -w release.yml -L1 --json databaseId -q '.[0].databaseId' -R fireflyframework/fireflyframework-parent) -R fireflyframework/fireflyframework-parent
 
 # 3. Layer 1: bom, utils, cache, eda, ecm, idp, ...
 for repo in fireflyframework-bom fireflyframework-utils fireflyframework-cache ...; do
-  cd "$repo" && git push origin main v26.02.05 && cd ..
+  cd "$repo" && git push origin main v26.02.06 && cd ..
 done
 # Wait for all Layer 1 GitHub Packages jobs to complete before continuing
 
@@ -692,8 +692,8 @@ done
 # ... push all repos in the layer, wait for GitHub Packages, proceed to next layer
 
 # 5. Non-Java repos (no layer dependencies)
-cd fireflyframework-cli && git push origin main v26.02.05
-cd fireflyframework-genai && git push origin main v26.02.05
+cd fireflyframework-cli && git push origin main v26.02.06
+cd fireflyframework-genai && git push origin main v26.02.06
 ```
 
 ### GitHub Packages Is the Layer Gate (Not Maven Central)
@@ -870,7 +870,7 @@ This means pushing a tag **only** triggers the release — it does **not** also 
 
 ### "Could not resolve artifact"
 
-**What you see:** `Could not find artifact org.fireflyframework:fireflyframework-xyz:jar:26.02.05`
+**What you see:** `Could not find artifact org.fireflyframework:fireflyframework-xyz:jar:26.02.06`
 
 **Common causes:**
 
@@ -986,7 +986,7 @@ cd .github && git push origin main
 
 ## CI Status Dashboard
 
-A live build status dashboard for all 41 repositories is available at:
+A live build status dashboard for all 40 repositories is available at:
 
 **[CI Status Dashboard](CI_STATUS.md)**
 

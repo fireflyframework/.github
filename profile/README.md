@@ -18,15 +18,15 @@ _/ ____\___________    _____   ______  _  _____________|  | __
 
 **Enterprise-grade reactive framework with distributed transactions, event-driven patterns, and battle-tested reliability.**
 
-Firefly Framework is a modular Spring Boot superset spanning **41 repositories** and providing production-ready building blocks for mission-critical distributed systems. Built on Spring WebFlux and Project Reactor, every module ships as an independent artifact and follows established enterprise patterns -- CQRS, Event Sourcing, Saga/TCC, and Event-Driven Architecture.
+Firefly Framework is a modular Spring Boot superset spanning **40 repositories** and providing production-ready building blocks for mission-critical distributed systems. Built on Spring WebFlux and Project Reactor, every module ships as an independent artifact and follows established enterprise patterns -- CQRS, Event Sourcing, Saga/TCC, and Event-Driven Architecture.
 
 ### Highlights
 
-- **Distributed Transactions** -- Saga and TCC orchestration with compensation and backpressure
+- **Unified Orchestration** -- Workflow, Saga, and TCC patterns in a single reactive engine with shared persistence, observability, and event sourcing
 - **Event-Driven Architecture** -- Kafka and RabbitMQ with dead-letter queues and Protobuf serialization
 - **CQRS and Event Sourcing** -- Command/query separation with reactive event store and projections
 - **Reactive from the ground up** -- Spring WebFlux, R2DBC, and Project Reactor throughout
-- **Enterprise integrations** -- ECM, identity providers, notifications, caching, and workflow orchestration
+- **Enterprise integrations** -- ECM, identity providers, notifications, and caching
 - **Java 25** (default, Java 21+ compatible) / **Spring Boot 3.5.10** / **Spring Cloud 2025**
 
 ### Installation
@@ -65,7 +65,7 @@ Once configured, inherit the parent POM:
 <parent>
     <groupId>org.fireflyframework</groupId>
     <artifactId>fireflyframework-parent</artifactId>
-    <version>26.02.05</version>
+    <version>26.02.06</version>
     <relativePath/>
 </parent>
 ```
@@ -107,4 +107,4 @@ Apache License 2.0 -- Copyright 2024-2026 Firefly Software Solutions Inc.
 
 ### CI Status
 
-See the **[CI Status Dashboard](https://github.com/fireflyframework/.github/blob/main/docs/CI_STATUS.md)** for live build status across all 41 repositories.
+See the **[CI Status Dashboard](https://github.com/fireflyframework/.github/blob/main/docs/CI_STATUS.md)** for live build status across all 40 repositories.
