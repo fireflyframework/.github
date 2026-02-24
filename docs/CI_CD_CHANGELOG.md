@@ -4,6 +4,29 @@ History of CI/CD changes, fixes, and improvements across the Firefly Framework.
 
 ---
 
+## 26.02.07 — Ecosystem Sync & DAG Alignment
+
+Released: February 2026
+
+### Branch Synchronization
+- Back-merged main → develop for 5 repos (orchestration, starter-application, cache, parent, rule-engine)
+- Synced `.github` develop branch with main
+
+### CLI Updates
+- Fixed DAG naming: `core`, `domain`, `data`, `application` → `starter-core`, `starter-domain`, `starter-data`, `starter-application` to match GitHub repo names and Maven artifactIds
+- Updated cloner repo list and runner detection logic
+- Bumped default `parent_version` from 26.02.03 to 26.02.07
+
+### Code Quality
+- Removed unused `Flux` import from `DomainAuthorizationService` (callbacks)
+- Full compile audit of all 40 repos across 7 DAG layers — zero errors
+
+### Documentation
+- Updated version references across CI/CD docs to 26.02.07
+- Updated DAG layer/repo counts (38 → 40 repos, 6 → 7 layers)
+
+---
+
 ## 26.02.06 — Unified Orchestration Engine
 
 Released: February 2026
