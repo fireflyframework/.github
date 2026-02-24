@@ -182,6 +182,7 @@ jobs:
       - name: Check existing Maven Central publication
         id: central-check
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         run: |
