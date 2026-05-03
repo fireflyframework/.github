@@ -103,7 +103,7 @@ curl -fsSL https://raw.githubusercontent.com/fireflyframework/fireflyframework-g
 
 ### License
 
-Apache License 2.0 -- Copyright 2024-2026 Firefly Software Solutions Inc.
+Apache License 2.0 -- Copyright 2024-2026 Firefly Software Foundation.
 
 ### CI Status
 
