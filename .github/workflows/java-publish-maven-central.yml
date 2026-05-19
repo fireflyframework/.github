@@ -121,8 +121,10 @@ jobs:
           # waitMaxTime drives how long central-publishing-maven-plugin polls for
           # Sonatype Portal validation after upload. Default plugin value is
           # short (10 min); Portal SLA is up to 40 min for first-time versions.
+          # central-publishing-maven-plugin parameter is `waitMaxTime` (seconds).
+          # Default is 600 (10min); Sonatype Portal SLA can exceed 30min for first-time versions.
           mvn -B -U -fae deploy -P release,maven-central -DskipTests \
-            -Dcentral.waitMaxTime=${{ inputs.wait-max-time }} \
+            -DwaitMaxTime=${{ inputs.wait-max-time }} \
             2>&1 | tee /tmp/mvn-central.log || {
               # 409 / duplicate / already published == benign (artifact is immutable)
               NON_DUP=$(grep -i "Failed to deploy\|Failed to execute.*deploy" /tmp/mvn-central.log | grep -viE "409|already published|already exists|duplicate|content already exists" || true)
