@@ -1,6 +1,6 @@
 # CI/CD Configuration Guide
 
-Everything you need to know about how Firefly Framework builds, tests, publishes, and releases its 40 repositories — and how to set it up for new ones.
+Everything you need to know about how Firefly Framework builds, tests, publishes, and releases its 41 repositories — and how to set it up for new ones.
 
 ---
 
@@ -37,39 +37,42 @@ Our CI/CD system solves this with two key ideas:
 Here is what the architecture looks like:
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│ .github repository                                                  │
-│                                                                     │
-│ .github/workflows/                                                  │
-│ ├── java-ci.yml          Shared CI for all Java repos               │
-│ ├── java-release.yml     Shared release for all Java repos          │
-│ ├── go-ci.yml            Shared CI for Go repos                     │
-│ ├── go-release.yml       Shared release for Go repos                │
-│ ├── python-ci.yml        Shared CI for Python repos                 │
-│ ├── python-release.yml   Shared release for Python repos            │
-│ └── dag-orchestrator.yml Cross-repo layer-by-layer coordinator      │
-└─────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│ .github repository                                                       │
+│                                                                          │
+│ .github/workflows/                                                       │
+│ ├── java-ci.yml                    Shared CI for all Java repos          │
+│ ├── java-release.yml               Shared GH Packages + Release page     │
+│ ├── java-publish-maven-central.yml Decoupled Maven Central publish       │
+│ ├── go-ci.yml                      Shared CI for Go repos                │
+│ ├── go-release.yml                 Shared release for Go repos           │
+│ ├── python-ci.yml                  Shared CI for Python repos            │
+│ ├── python-release.yml             Shared release for Python repos       │
+│ └── dag-orchestrator.yml           Cross-repo layer-by-layer coordinator │
+└──────────────────────────────────────────────────────────────────────────┘
                             ▲
                             │ workflow_call (reusable workflow)
                             │
-┌─────────────────────────────────────────────────────────────────────┐
-│ Each framework repository                                           │
-│                                                                     │
-│ .github/workflows/                                                  │
-│ ├── ci.yml      → calls shared java-ci.yml (10-15 lines)           │
-│ └── release.yml → calls shared release.yml (10-15 lines)           │
-└─────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│ Each framework repository                                                │
+│                                                                          │
+│ .github/workflows/                                                       │
+│ ├── ci.yml             → calls java-ci.yml                               │
+│ ├── release.yml        → calls java-release.yml      (GH Packages + page)│
+│ └── maven-central.yml  → calls java-publish-maven-central.yml (decoupled)│
+└──────────────────────────────────────────────────────────────────────────┘
                             ▲
                             │ triggered by
                             │
-┌─────────────────────────────────────────────────────────────────────┐
-│ Trigger Events                                                      │
-│                                                                     │
-│ Push to develop/main  → ci.yml → build & test                       │
-│ Pull request          → ci.yml → build & test                       │
-│ Tag push (v*)         → release.yml → publish + release             │
-│ workflow_dispatch      → ci.yml or release.yml (manual/DAG)         │
-└─────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│ Trigger Events                                                           │
+│                                                                          │
+│ Push to develop/main  → ci.yml                → build & test             │
+│ Pull request          → ci.yml                → build & test             │
+│ Tag push (v*)         → release.yml + maven-central.yml (in parallel)    │
+│ workflow_dispatch     → any workflow (manual or via DAG orchestrator /   │
+│                         flywork release publish-mvn-central)             │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Key design decisions:**
@@ -77,7 +80,7 @@ Here is what the architecture looks like:
 - **Releases cascade via the DAG orchestrator**, which dispatches layer by layer — waiting for each layer's GitHub Packages to publish before starting the next.
 - **No duplicate workflow runs.** Tag pushes trigger `release.yml` only. Pushes to `main` trigger `ci.yml` only. There is no overlap.
 - **Push `.github` first.** Before any release, push the `.github` repo so shared workflows are up to date on the remote. All other repos reference `@main`.
-- **GitHub Packages is the layer gate.** Downstream repos resolve from GitHub Packages during builds. Maven Central publishes in parallel but does not block downstream layers.
+- **GitHub Packages is the layer gate.** Downstream repos resolve from GitHub Packages during builds. Maven Central publishes via a separate, decoupled workflow (`maven-central.yml`) and never blocks downstream layers.
 
 ---
 
@@ -215,17 +218,21 @@ Two tokens are used in the CI/CD system:
 
 **Permissions required (on caller workflow):** `packages: read` (downloading dependencies) + `contents: read` (checking out code)
 
-### `java-release.yml` — Publish Artifacts and Create Releases
+### `java-release.yml` — Publish to GitHub Packages and Create the Release Page
 
-**What it does:** Deploys Maven artifacts to both GitHub Packages and Maven Central in parallel, then creates a GitHub Release.
+**What it does:** Deploys Maven artifacts to GitHub Packages, then creates a GitHub Release page. **Maven Central publishing is decoupled** into a separate `java-publish-maven-central.yml` workflow (see below) so a slow Sonatype Portal validation cannot block the fast, deterministic GH Packages publish or the Release-page creation.
+
+**Jobs:**
+
+1. **`github-packages`** — Deploys parent POM (if multi-module) and then child modules to GitHub Packages.
+2. **`github-release`** — Depends on `github-packages` success. Creates the `v<version>` GitHub Release page with auto-generated notes, with retry/race-condition tolerance for concurrent DAG runs.
 
 **Key design features:**
 
 - **Multi-module 409 handling:** For multi-module repos (detected by `<modules>` in pom.xml), the deploy is split into two phases: parent POM first (`-N`), then child modules (`-pl '!.'`). This prevents the Maven reactor ban cascade where a 409 on the parent POM kills all child deployments.
-- **Maven Central pre-check:** Before deploying, checks if the version is already published on Maven Central. If so, skips the deploy entirely rather than getting a confusing error.
 - **Strict error matching:** Only treats HTTP 409 and explicit "already exists/published" messages as acceptable. Other errors (including 400 Bad Request) are treated as real failures.
-- **Post-release requires both targets:** The GitHub Release is only created when BOTH GitHub Packages and Maven Central succeed.
 - **Concurrency control:** Each job has a concurrency group per repository and ref to prevent duplicate release runs.
+- **Release page is no longer blocked by Maven Central.** A slow Sonatype validation no longer hides the successful GH Packages publish.
 
 **Inputs:**
 
@@ -235,7 +242,52 @@ Two tokens are used in the CI/CD system:
 
 **Permissions required (on caller workflow):** `contents: write` (creating releases/tags) + `packages: write` (publishing artifacts)
 
-**Dual publish:** The release workflow publishes to both GitHub Packages and Maven Central in parallel jobs. Both deploy steps use `set -o pipefail` to ensure Maven failures are properly detected even when output is piped through `tee` for log capture.
+### `java-publish-maven-central.yml` — Publish to Maven Central (decoupled)
+
+**What it does:** Uploads the deployment bundle to Sonatype Central Portal and polls for validation/publish. Triggered in parallel with `java-release.yml` on tag push, AND callable via `workflow_dispatch` for retries.
+
+**Why it's a separate workflow:**
+
+Sonatype Central Portal validation routinely takes 20–40 minutes after upload, and the `central-publishing-maven-plugin` polls until validation completes. Default poll timeout is shorter than Portal's SLA, so deploys frequently appear to fail with `Polling for <id> timed out` even though bundles uploaded successfully. Decoupling lets the GH Packages publish + Release page run reliably while Maven Central retries independently on its own time.
+
+**Key design features:**
+
+- **`waitMaxTime` input** (default `3600` seconds = 60 min) extends the polling window past Sonatype's typical SLA.
+- **Polling-timeout tolerance:** if the plugin gives up polling but the bundle was uploaded, the workflow returns success (re-running would just create a duplicate; Sonatype will finish validation in its own time).
+- **Already-published tolerance:** 409s and "duplicate" responses are treated as success since Maven Central artifacts are immutable.
+- **Pre-deploy check:** before uploading, queries `central.sonatype.com/api/v1/publisher/published` to skip the upload entirely if the version is already on Central.
+- **Post-deploy verification:** polls the same API for up to 5 additional minutes after the deploy step, surfacing the publish status in the workflow log.
+
+**Inputs:**
+
+| Input | Type | Default | Description |
+|-------|------|---------|-------------|
+| `java-version` | string | `25` | JDK version |
+| `wait-max-time` | string | `3600` | Sonatype Central polling wait time (seconds) |
+
+**Per-repo wrapper (`maven-central.yml`):**
+
+```yaml
+name: Publish to Maven Central
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      wait-max-time:
+        description: 'Sonatype Central polling wait time in seconds (default 3600)'
+        required: false
+        default: '3600'
+jobs:
+  maven-central:
+    uses: fireflyframework/.github/.github/workflows/java-publish-maven-central.yml@main
+    with:
+      java-version: '25'
+      wait-max-time: ${{ inputs.wait-max-time || '3600' }}
+    secrets: inherit
+```
+
+**Retry from the CLI:** `flywork release publish-mvn-central [--version VER] [--repo R]` dispatches the workflow for any repo missing on Maven Central — no re-tagging needed.
 
 ### `go-ci.yml` — Go CI
 
@@ -986,7 +1038,7 @@ cd .github && git push origin main
 
 ## CI Status Dashboard
 
-A live build status dashboard for all 40 repositories is available at:
+A live build status dashboard for all 41 repositories is available at:
 
 **[CI Status Dashboard](CI_STATUS.md)**
 

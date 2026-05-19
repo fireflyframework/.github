@@ -4,6 +4,46 @@ History of CI/CD changes, fixes, and improvements across the Firefly Framework.
 
 ---
 
+## 26.05.07 — Maven Central decoupled into separate workflow
+
+Released: May 2026
+
+### Architectural change — decoupled Maven Central publishing
+
+Sonatype Central Portal validation routinely takes 20–40 minutes after bundle upload, and the `central-publishing-maven-plugin`'s default polling timeout is shorter than Portal's SLA. With Maven Central as a job in the same workflow as GitHub Packages, this caused:
+- Whole "Release" workflow marked failed (hiding the successful GH Packages publish)
+- GitHub Release page never created (the `post-release` job required Maven Central success)
+- Re-tries required re-triggering the entire workflow
+
+**Fix:** Split into two reusable workflows in `fireflyframework/.github`:
+- `java-release.yml` — slimmed: GH Packages publish + GitHub Release page (fast, deterministic, ~90s)
+- `java-publish-maven-central.yml` — NEW: Maven Central only, with `waitMaxTime` input (default 60 min), polling-timeout tolerance, and post-deploy verification poll
+
+Each of the 41 Java repos got a new `maven-central.yml` wrapper that calls the reusable workflow on tag push AND via `workflow_dispatch` — allowing retries without re-tagging.
+
+### CLI: new release subcommands
+
+- `flywork release verify [--version VER]` — 3-column status (git tag / GH Packages / Maven Central)
+- `flywork release publish-mvn-central [--version VER] [--repo R]` — dispatches the per-repo `maven-central.yml` for repos missing on Maven Central; useful for retrying Sonatype polling timeouts without re-tagging
+
+### CLI: DAG fix
+
+- `orchestration → eventsourcing` edge added (orchestration's pom requires `eventsourcing:${project.version}` at build time; without this edge, orchestration's Release workflow failed in Layer 3 because eventsourcing wasn't yet published)
+- `fireflyframework-kernel` added to `setup.FrameworkRepos` (was missing from the list used by `flywork setup` and `flywork release verify` display — kernel was always in the DAG and was always released correctly, just invisible to the UI)
+
+### Framework code fixes (the reason 26.05.07 exists)
+
+- **cache** — `CacheObservabilityAutoConfiguration.cacheHealthIndicator` now uses `@ConditionalOnSingleCandidate(CacheAdapter.class)` + `getIfUnique()` — apps with multiple `CacheAdapter` beans (e.g. webhooks) no longer crash with `NoUniqueBeanDefinitionException`
+- **observability** — `application-firefly-observability.yml` defaults now include `management.endpoint.health.validate-group-membership: false` — apps without a `db` autoconfig no longer crash with "Included health contributor 'db' does not exist"
+- **eda** — `EdaHealthIndicator` now uses `@Lazy` + `ObjectProvider<EventConsumer>` — no more circular dep via `EventListenerProcessor` BeanPostProcessor
+
+### Operational notes
+
+- v26.05.06 was tagged + published for 39/41 repos; webhooks + callbacks were intentionally skipped because the three observability bugs above made them un-releasable in 26.05.06. Consumers should upgrade directly to 26.05.07.
+- All 41 repos at v26.05.07 across: git tags ✓, GitHub Packages ✓, Maven Central ✓.
+
+---
+
 ## 26.02.07 — Ecosystem Sync & DAG Alignment
 
 Released: February 2026
