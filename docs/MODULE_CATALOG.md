@@ -43,6 +43,10 @@ Complete reference of all framework modules, organized by capability.
 | Repository | Purpose |
 |---|---|
 | [fireflyframework-cache](https://github.com/fireflyframework/fireflyframework-cache) | Unified caching abstraction with Caffeine, Redis, Hazelcast, and JCache adapters |
+| [fireflyframework-cache-redis](https://github.com/fireflyframework/fireflyframework-cache-redis) | Redis cache provider adapter |
+| [fireflyframework-cache-hazelcast](https://github.com/fireflyframework/fireflyframework-cache-hazelcast) | Hazelcast cache provider adapter |
+| [fireflyframework-cache-jcache](https://github.com/fireflyframework/fireflyframework-cache-jcache) | JSR-107/JCache cache provider adapter |
+| [fireflyframework-cache-postgres](https://github.com/fireflyframework/fireflyframework-cache-postgres) | PostgreSQL R2DBC cache provider adapter |
 | [fireflyframework-r2dbc](https://github.com/fireflyframework/fireflyframework-r2dbc) | Reactive database support with R2DBC auto-configuration and PostgreSQL integration |
 | [fireflyframework-web](https://github.com/fireflyframework/fireflyframework-web) | Spring WebFlux starter with exception handling, idempotency, PII masking, and OpenAPI support |
 | [fireflyframework-client](https://github.com/fireflyframework/fireflyframework-client) | Reactive service client for REST, SOAP, and gRPC with circuit breakers and load balancing |
@@ -52,6 +56,9 @@ Complete reference of all framework modules, organized by capability.
 | Repository | Purpose |
 |---|---|
 | [fireflyframework-eda](https://github.com/fireflyframework/fireflyframework-eda) | Event-Driven Architecture with Kafka/RabbitMQ, dead-letter queues, and Protobuf serialization |
+| [fireflyframework-eda-kafka](https://github.com/fireflyframework/fireflyframework-eda-kafka) | Apache Kafka transport adapter |
+| [fireflyframework-eda-rabbitmq](https://github.com/fireflyframework/fireflyframework-eda-rabbitmq) | RabbitMQ transport adapter |
+| [fireflyframework-eda-postgres](https://github.com/fireflyframework/fireflyframework-eda-postgres) | PostgreSQL outbox + LISTEN/NOTIFY transport adapter |
 | [fireflyframework-cqrs](https://github.com/fireflyframework/fireflyframework-cqrs) | CQRS implementation with command/query bus, authorization, caching, and metrics |
 | [fireflyframework-eventsourcing](https://github.com/fireflyframework/fireflyframework-eventsourcing) | Event Sourcing with reactive event store, snapshots, projections, and outbox pattern |
 | [fireflyframework-orchestration](https://github.com/fireflyframework/fireflyframework-orchestration) | Unified reactive orchestration engine combining Workflow, Saga, and TCC patterns with shared persistence, observability, backpressure, validation, execution reporting, and event sourcing |
@@ -80,6 +87,7 @@ Complete reference of all framework modules, organized by capability.
 |---|---|
 | [fireflyframework-idp](https://github.com/fireflyframework/fireflyframework-idp) | IDP abstraction layer with ports and DTOs for authentication and authorization |
 | [fireflyframework-idp-aws-cognito](https://github.com/fireflyframework/fireflyframework-idp-aws-cognito) | AWS Cognito adapter |
+| [fireflyframework-idp-azure-ad](https://github.com/fireflyframework/fireflyframework-idp-azure-ad) | Azure AD (Microsoft Entra ID) adapter |
 | [fireflyframework-idp-internal-db](https://github.com/fireflyframework/fireflyframework-idp-internal-db) | Database-backed IDP with R2DBC, JWT tokens, and Flyway migrations |
 | [fireflyframework-idp-keycloak](https://github.com/fireflyframework/fireflyframework-idp-keycloak) | Keycloak Admin API adapter |
 
