@@ -25,6 +25,7 @@ Complete reference of all framework modules, organized by capability.
 
 | Repository | Purpose |
 |---|---|
+| [fireflyframework-kernel](https://github.com/fireflyframework/fireflyframework-kernel) | Foundational kernel — shared exception hierarchy (`FireflyInfrastructureException` and friends) and base abstractions that every framework module builds on |
 | [fireflyframework-starter-core](https://github.com/fireflyframework/fireflyframework-starter-core) | Starter for core/infrastructure-layer microservices — WebClient utilities, service discovery, messaging bridges, enhanced actuator, resilience patterns |
 | [fireflyframework-starter-domain](https://github.com/fireflyframework/fireflyframework-starter-domain) | Starter for domain-layer microservices with DDD patterns, CQRS, SAGA orchestration, and event-driven architecture |
 | [fireflyframework-utils](https://github.com/fireflyframework/fireflyframework-utils) | Shared utilities, template rendering, and common helper functions |
@@ -42,7 +43,7 @@ Complete reference of all framework modules, organized by capability.
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-cache](https://github.com/fireflyframework/fireflyframework-cache) | Unified caching abstraction with Caffeine, Redis, Hazelcast, and JCache adapters |
+| [fireflyframework-cache](https://github.com/fireflyframework/fireflyframework-cache) | Unified reactive caching abstraction (SPI + Caffeine default + smart multi-tier) with pluggable Redis, Hazelcast, JCache, and PostgreSQL provider adapters (separate modules below) |
 | [fireflyframework-cache-redis](https://github.com/fireflyframework/fireflyframework-cache-redis) | Redis cache provider adapter |
 | [fireflyframework-cache-hazelcast](https://github.com/fireflyframework/fireflyframework-cache-hazelcast) | Hazelcast cache provider adapter |
 | [fireflyframework-cache-jcache](https://github.com/fireflyframework/fireflyframework-cache-jcache) | JSR-107/JCache cache provider adapter |
@@ -55,7 +56,7 @@ Complete reference of all framework modules, organized by capability.
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-eda](https://github.com/fireflyframework/fireflyframework-eda) | Event-Driven Architecture with Kafka/RabbitMQ, dead-letter queues, and Protobuf serialization |
+| [fireflyframework-eda](https://github.com/fireflyframework/fireflyframework-eda) | Event-Driven Architecture core (SPI + in-memory/NOOP transports, dead-letter queues, JSON/Avro/Protobuf serialization, resilience) with pluggable Kafka, RabbitMQ, and PostgreSQL transport adapters (separate modules below) |
 | [fireflyframework-eda-kafka](https://github.com/fireflyframework/fireflyframework-eda-kafka) | Apache Kafka transport adapter |
 | [fireflyframework-eda-rabbitmq](https://github.com/fireflyframework/fireflyframework-eda-rabbitmq) | RabbitMQ transport adapter |
 | [fireflyframework-eda-postgres](https://github.com/fireflyframework/fireflyframework-eda-postgres) | PostgreSQL outbox + LISTEN/NOTIFY transport adapter |
@@ -107,6 +108,7 @@ Complete reference of all framework modules, organized by capability.
 |---|---|
 | [fireflyframework-webhooks](https://github.com/fireflyframework/fireflyframework-webhooks) | Reactive webhook ingestion with provider-agnostic routing, message queue integration, rate limiting, and comprehensive observability |
 | [fireflyframework-callbacks](https://github.com/fireflyframework/fireflyframework-callbacks) | Outbound webhook management for dispatching events to external systems with circuit breakers, retry logic, and domain authorization |
+| [fireflyframework-agentic-bridge](https://github.com/fireflyframework/fireflyframework-agentic-bridge) | Bridge connecting Firefly services to agentic/AI systems — `-core`, `-autoconfigure`, and Spring Boot `-starter` modules |
 
 ## Tooling & Automation
 
