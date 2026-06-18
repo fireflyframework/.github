@@ -86,11 +86,11 @@ Complete reference of all framework modules, organized by capability.
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-idp](https://github.com/fireflyframework/fireflyframework-idp) | IDP abstraction layer with ports and DTOs for authentication and authorization |
-| [fireflyframework-idp-aws-cognito](https://github.com/fireflyframework/fireflyframework-idp-aws-cognito) | AWS Cognito adapter |
-| [fireflyframework-idp-azure-ad](https://github.com/fireflyframework/fireflyframework-idp-azure-ad) | Azure AD (Microsoft Entra ID) adapter |
-| [fireflyframework-idp-internal-db](https://github.com/fireflyframework/fireflyframework-idp-internal-db) | Database-backed IDP with R2DBC, JWT tokens, and Flyway migrations |
-| [fireflyframework-idp-keycloak](https://github.com/fireflyframework/fireflyframework-idp-keycloak) | Keycloak Admin API adapter |
+| [fireflyframework-security-idp](https://github.com/fireflyframework/fireflyframework-security-idp) | IDP abstraction layer with ports and DTOs for authentication and authorization |
+| [fireflyframework-security-idp-aws-cognito](https://github.com/fireflyframework/fireflyframework-security-idp-aws-cognito) | AWS Cognito adapter |
+| [fireflyframework-security-idp-azure-ad](https://github.com/fireflyframework/fireflyframework-security-idp-azure-ad) | Azure AD (Microsoft Entra ID) adapter |
+| [fireflyframework-security-idp-internal-db](https://github.com/fireflyframework/fireflyframework-security-idp-internal-db) | Database-backed IDP with R2DBC, JWT tokens, and Flyway migrations |
+| [fireflyframework-security-idp-keycloak](https://github.com/fireflyframework/fireflyframework-security-idp-keycloak) | Keycloak Admin API adapter |
 
 ## Notifications
 
