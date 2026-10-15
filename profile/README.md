@@ -1,5 +1,10 @@
 <a href="https://fireflyframework.org/">
-  <img src="https://fireflyframework.org/brand/social-home.png" alt="Framework by Firefly. One architecture, five languages. Open-source application frameworks." width="100%">
+<picture>
+  <source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/fireflyframework/.github/main/profile/assets/banner-narrow-dark.svg">
+  <source media="(max-width: 640px)" srcset="https://raw.githubusercontent.com/fireflyframework/.github/main/profile/assets/banner-narrow-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/fireflyframework/.github/main/profile/assets/banner-dark.svg">
+  <img src="https://raw.githubusercontent.com/fireflyframework/.github/main/profile/assets/banner-light.svg" alt="Framework by Firefly. One architecture. Five languages: Java, Python, PHP, Rust, and .NET." width="100%">
+</picture>
 </a>
 
 # Firefly Framework
@@ -24,16 +29,12 @@ jafly spans the modular Java repositories. Start with its [setup guide](https://
 
 ## How a service fits together
 
-```mermaid
-flowchart TB
-    boundary["HTTP controllers and event consumers"]
-    application["Commands, queries, and orchestration"]
-    domain["Your domain rules and use cases"]
-    adapters["Repositories and integration adapters"]
-    infrastructure["Databases, brokers, and external services"]
-    boundary --> application --> domain
-    domain --> adapters --> infrastructure
-```
+<picture>
+  <source media="(max-width: 640px) and (prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/fireflyframework/.github/main/profile/assets/architecture-narrow-dark.svg">
+  <source media="(max-width: 640px)" srcset="https://raw.githubusercontent.com/fireflyframework/.github/main/profile/assets/architecture-narrow-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/fireflyframework/.github/main/profile/assets/architecture-dark.svg">
+  <img src="https://raw.githubusercontent.com/fireflyframework/.github/main/profile/assets/architecture-light.svg" alt="Conceptual application architecture: delivery boundaries reach application capabilities and domain rules; adapters connect providers and persistence. Each framework has its own modules." width="100%">
+</picture>
 
 *Conceptual architecture shared by the family. Each implementation supplies its own modules and integrations.*
 
