@@ -1,110 +1,71 @@
-```
-  _____.__                _____.__                            
-_/ ____\__|______   _____/ ____\  | ___.__.                   
-\   __\|  \_  __ \_/ __ \   __\|  |<   |  |                   
- |  |  |  ||  | \/\  ___/|  |  |  |_\___  |                   
- |__|  |__||__|    \___  >__|  |____/ ____|                   
-                       \/           \/                        
-  _____                                                 __    
-_/ ____\___________    _____   ______  _  _____________|  | __
-\   __\\_  __ \__  \  /     \_/ __ \ \/ \/ /  _ \_  __ \  |/ /
- |  |   |  | \// __ \|  Y Y  \  ___/\     (  <_> )  | \/    < 
- |__|   |__|  (____  /__|_|  /\___  >\/\_/ \____/|__|  |__|_ \
-                   \/      \/     \/                        \/
- --------------------------> Enterprise software made easy <-
-```
+<a href="https://fireflyframework.org/">
+  <img src="https://fireflyframework.org/brand/social-home.png" alt="Framework by Firefly. One architecture, five languages. Open-source application frameworks." width="100%">
+</a>
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+# Firefly Framework
 
-**Enterprise-grade reactive framework with distributed transactions, event-driven patterns, and battle-tested reliability.**
+Build services in Java, Python, PHP, Rust, or .NET with a shared approach to application architecture. Each framework follows its language's conventions and builds on a native stack your team can keep using.
 
-Firefly Framework is a modular Spring Boot superset spanning **40 repositories** and providing production-ready building blocks for mission-critical distributed systems. Built on Spring WebFlux and Project Reactor, every module ships as an independent artifact and follows established enterprise patterns -- CQRS, Event Sourcing, Saga/TCC, and Event-Driven Architecture.
+The frameworks handle composition, command and query dispatch, persistence, messaging, and multi-step operations around your business code. Your team writes the domain rules and chooses its infrastructure. Capabilities and release maturity differ by framework; each project's documentation defines what it supports.
 
-### Highlights
+[Website](https://fireflyframework.org/) · [Choose a framework](https://fireflyframework.org/#frameworks) · [Architecture](https://fireflyframework.org/#architecture) · [Books](https://fireflyframework.org/#books)
 
-- **Unified Orchestration** -- Workflow, Saga, and TCC patterns in a single reactive engine with shared persistence, observability, and event sourcing
-- **Event-Driven Architecture** -- Kafka and RabbitMQ with dead-letter queues and Protobuf serialization
-- **CQRS and Event Sourcing** -- Command/query separation with reactive event store and projections
-- **Reactive from the ground up** -- Spring WebFlux, R2DBC, and Project Reactor throughout
-- **Enterprise integrations** -- ECM, identity providers, notifications, and caching
-- **Java 25** (default, Java 21+ compatible) / **Spring Boot 3.5.10** / **Spring Cloud 2025**
+## Choose your language
 
-### Installation
+| Framework | Native foundation | Explore |
+| --- | --- | --- |
+| <a href="https://fireflyframework.org/frameworks/java/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://fireflyframework.org/brand/frameworks/java-dark.svg"><img src="https://fireflyframework.org/brand/frameworks/java-light.svg" alt="jafly by Firefly" width="130"></picture></a> | Java · Spring Boot and WebFlux | [Guide](https://fireflyframework.org/frameworks/java/) · [Modules](https://github.com/fireflyframework/.github/blob/main/docs/MODULE_CATALOG.md) |
+| <a href="https://fireflyframework.org/frameworks/python/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://fireflyframework.org/brand/frameworks/python-dark.svg"><img src="https://fireflyframework.org/brand/frameworks/python-light.svg" alt="pyfly by Firefly" width="130"></picture></a> | Python · Starlette or FastAPI | [Guide](https://fireflyframework.org/frameworks/python/) · [Source](https://github.com/fireflyframework/fireflyframework-pyfly) |
+| <a href="https://fireflyframework.org/frameworks/php/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://fireflyframework.org/brand/frameworks/php-dark.svg"><img src="https://fireflyframework.org/brand/frameworks/php-light.svg" alt="larafly by Firefly" width="130"></picture></a> | PHP · Laravel | [Guide](https://fireflyframework.org/frameworks/php/) · [Source](https://github.com/fireflyframework/fireflyframework-php) |
+| <a href="https://fireflyframework.org/frameworks/rust/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://fireflyframework.org/brand/frameworks/rust-dark.svg"><img src="https://fireflyframework.org/brand/frameworks/rust-light.svg" alt="rsfly by Firefly" width="130"></picture></a> | Rust · Tokio and Axum | [Guide](https://fireflyframework.org/frameworks/rust/) · [Source](https://github.com/fireflyframework/fireflyframework-rust) |
+| <a href="https://fireflyframework.org/frameworks/dotnet/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://fireflyframework.org/brand/frameworks/dotnet-dark.svg"><img src="https://fireflyframework.org/brand/frameworks/dotnet-light.svg" alt="netfly by Firefly" width="130"></picture></a> | C# · ASP.NET Core | [Guide](https://fireflyframework.org/frameworks/dotnet/) · [Source](https://github.com/fireflyframework/fireflyframework-dotnet) |
 
-The fastest way to get started is with the **[Firefly CLI](https://github.com/fireflyframework/fireflyframework-cli)** (`flywork`):
+jafly spans the modular Java repositories. Start with its [setup guide](https://github.com/fireflyframework/.github/blob/main/docs/GETTING_STARTED.md), [parent project](https://github.com/fireflyframework/fireflyframework-parent), and [CLI](https://github.com/fireflyframework/fireflyframework-cli). The other language implementations each have their own repository and installation guide. pyfly distributes through [GitHub Releases](https://github.com/fireflyframework/fireflyframework-pyfly/releases).
 
-**macOS / Linux:**
+## How a service fits together
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/fireflyframework/fireflyframework-cli/main/install.sh | bash
+```mermaid
+flowchart TB
+    boundary["HTTP controllers and event consumers"]
+    application["Commands, queries, and orchestration"]
+    domain["Your domain rules and use cases"]
+    adapters["Repositories and integration adapters"]
+    infrastructure["Databases, brokers, and external services"]
+    boundary --> application --> domain
+    domain --> adapters --> infrastructure
 ```
 
-**Windows (PowerShell):**
+*Conceptual architecture shared by the family. Each implementation supplies its own modules and integrations.*
 
-```powershell
-irm https://raw.githubusercontent.com/fireflyframework/fireflyframework-cli/main/install.ps1 | iex
-```
+Domain logic stays separate from transport and provider code. The native libraries still route requests and run database transactions. For operations that span services, the frameworks provide compensating sagas; your application defines the compensating actions.
 
-Then bootstrap the entire framework into your local environment:
+## Build, run agents, and coordinate processes
 
-```bash
-flywork setup # clones all repos in dependency order and installs to ~/.m2
-flywork create core # scaffold a new microservice from a built-in archetype
-flywork doctor # verify your environment (Java, Maven, Git, etc.)
-```
+| Project | What it does | Explore |
+| --- | --- | --- |
+| Firefly Forge | A software factory for pyfly and larafly. Give a coding agent a bounded task, run the project's checks, and review the recorded change before delivery. | [Guide](https://fireflyframework.org/forge/) · [Source](https://github.com/fireflyframework/firefly-forge) |
+| Firefly Agentic | A Python library on Pydantic AI for agents with tools, memory, and retrieval. Your application collects approvals for tools that need them. | [Guide](https://fireflyframework.org/agentic/) · [Source](https://github.com/fireflyframework/fireflyframework-agentic) |
+| Firefly Weave | Business processes across systems and people. Author workflows in Studio, YAML, JSON, or Python; runs retain their history while waiting for events and human tasks. | [Guide](https://fireflyframework.org/weave/) · [Source](https://github.com/fireflyframework/firefly-weave) |
 
-Four project archetypes are available: **core**, **domain**, **application**, and **library**. See the [CLI documentation](https://github.com/fireflyframework/fireflyframework-cli) for full details.
+[Firefly Agent Bridge](https://github.com/fireflyframework/firefly-agent-bridge) connects applications and Forge to a developer's signed-in coding CLI. The [Java Agentic Bridge](https://github.com/fireflyframework/fireflyframework-agentic-bridge) connects Java services to an HTTP agent service.
 
-### Quick Start (Maven)
+## Learn by building
 
-Firefly Framework artifacts are published to **GitHub Packages**. You need to configure Maven with a GitHub Personal Access Token before adding dependencies. See the [Getting Started Guide](https://github.com/fireflyframework/.github/blob/main/docs/GETTING_STARTED.md) for step-by-step instructions.
+<p>
+  <a href="https://fireflyframework.org/frameworks/java/#book"><img src="https://fireflyframework.org/assets/books/java.png" alt="jafly by example: Java and Spring Boot" width="23%"></a>
+  <a href="https://fireflyframework.org/frameworks/python/#book"><img src="https://fireflyframework.org/assets/books/python.png" alt="pyfly by example: Python" width="23%"></a>
+  <a href="https://fireflyframework.org/frameworks/php/#book"><img src="https://fireflyframework.org/assets/books/php.png" alt="larafly by example: PHP and Laravel" width="23%"></a>
+  <a href="https://fireflyframework.org/frameworks/rust/#book"><img src="https://fireflyframework.org/assets/books/rust.png" alt="rsfly by example: Rust" width="23%"></a>
+</p>
 
-Once configured, inherit the parent POM:
+Four *by example* books are available in English and Spanish, in PDF and EPUB. jafly follows a lending service; pyfly and larafly build a wallet and ledger; rsfly builds a ledger on Tokio, Axum, and SQLx. Each framework's book page links to its editions and companion sample.
 
-```xml
-<parent>
-    <groupId>org.fireflyframework</groupId>
-    <artifactId>fireflyframework-parent</artifactId>
-    <version>26.02.07</version>
-    <relativePath/>
-</parent>
-```
+Choose a language, follow its installation guide, and run one sample service. Then add the modules your application needs. The [framework pages](https://fireflyframework.org/#frameworks) link to documentation, source examples, and release information.
 
-Then add the modules you need -- no version tags required:
+## Contribute and follow the work
 
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.fireflyframework</groupId>
-        <artifactId>fireflyframework-web</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.fireflyframework</groupId>
-        <artifactId>fireflyframework-r2dbc</artifactId>
-    </dependency>
-</dependencies>
-```
+Open issues and pull requests in the project you use. Read the [contribution guide](https://github.com/fireflyframework/.github/blob/main/CONTRIBUTING.md), follow the [code of conduct](https://github.com/fireflyframework/.github/blob/main/CODE_OF_CONDUCT.md), and use the [security policy](https://github.com/fireflyframework/.github/blob/main/SECURITY.md) to report vulnerabilities privately.
 
-See the [Module Catalog](https://github.com/fireflyframework/.github/blob/main/docs/MODULE_CATALOG.md) for the full list of available modules.
+The Firefly Software Foundation maintains the frameworks. [Firefly Software](https://fireflysoftware.io/) builds its banking and insurance services on them, with business modules in [Firefly OpenPlatform](https://github.com/firefly-oss). Read [how the project began](https://fireflyframework.org/about/).
 
-### GenAI
-
-Firefly Framework also provides **[fireflyframework-genai](https://github.com/fireflyframework/fireflyframework-genai)** -- a production-grade GenAI metaframework built on [Pydantic AI](https://ai.pydantic.dev/). It extends Pydantic AI with six composable layers covering agents, tools, reasoning patterns (ReAct, CoT, Plan-and-Execute, and more), DAG pipeline orchestration, observability, and REST / message-queue exposure -- so you can build, validate, and deploy intelligent agents without coupling domain logic to infrastructure.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/fireflyframework/fireflyframework-genai/main/install.sh | bash
-```
-
-### Guides & Documentation
-
-- [Getting Started Guide](https://github.com/fireflyframework/.github/blob/main/docs/GETTING_STARTED.md) -- Configure GitHub Packages, create your first project, and start building
-- [Module Catalog](https://github.com/fireflyframework/.github/blob/main/docs/MODULE_CATALOG.md) -- Complete reference of all framework modules
-- [CI/CD Configuration Guide](https://github.com/fireflyframework/.github/blob/main/docs/CI_CD_GUIDE.md) -- Shared workflows, release process, and troubleshooting
-
-### License
-
-Apache License 2.0 -- Copyright 2024-2026 Firefly Software Foundation.
-
-### CI Status
-
-See the **[CI Status Dashboard](https://github.com/fireflyframework/.github/blob/main/docs/CI_STATUS.md)** for live build status across all 40 repositories.
+<sub>Each project defines its own license. The Firefly and Framework visual identities remain proprietary to Firefly Software Solutions Inc.</sub>
