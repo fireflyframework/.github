@@ -26,7 +26,7 @@ flywork doctor
 flywork create core
 ```
 
-The current CLI clones Jafly once and builds its full reactor. Existing legacy checkout directories are preserved. A successful setup saves the installed parent version for subsequent project scaffolding. Use the CLI's `FLYWORK_HOME` setting to isolate configuration and setup state when qualifying a new environment.
+The current CLI clones Jafly once and builds its full reactor. A successful setup saves the installed parent version for subsequent project scaffolding. Use the CLI's `FLYWORK_HOME` setting to isolate configuration and setup state when qualifying a new environment.
 
 ## Use the parent or BOM
 
@@ -49,11 +49,10 @@ Add only the modules you need, using their existing `org.fireflyframework` artif
 
 For final versions, consult [Jafly releases](https://github.com/fireflyframework/fireflyframework-jafly/releases) and their verified publication manifests. Authentication is necessary when resolving private or authenticated GitHub Packages artifacts. Reference environment variables in Maven settings to keep credentials out of source control. A local source installation needs no package token.
 
-Original repository releases and pinned book examples remain historical records. Do not rewrite an existing release or assume its examples have been qualified on the new Boot 4 train.
-
 ## Continue
 
 - [Framework documentation](https://fireflyframework.github.io/fireflyframework-jafly/)
-- [Module catalog](MODULE_CATALOG.md)
+- [Module catalog](https://fireflyframework.github.io/fireflyframework-jafly/modules/)
+- [Jafly repository README](https://github.com/fireflyframework/fireflyframework-jafly#readme)
 - [CI/CD and releases](CI_CD_GUIDE.md)
 - [Contribution guidelines](../CONTRIBUTING.md)
