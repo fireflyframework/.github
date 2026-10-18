@@ -1,0 +1,27 @@
+name: Jafly dispatcher checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/dispatch_jafly.py
+      - tests/test_jafly_dispatch.py
+      - docs/jafly-source-repositories.json
+      - .github/workflows/dag-orchestrator.yml
+      - .github/workflows/jafly-dispatch-ci.yml
+  pull_request:
+    paths:
+      - scripts/dispatch_jafly.py
+      - tests/test_jafly_dispatch.py
+      - docs/jafly-source-repositories.json
+      - .github/workflows/dag-orchestrator.yml
+      - .github/workflows/jafly-dispatch-ci.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Check Java routing and immutable release inputs
+        run: python3 -m unittest discover -s tests -v
