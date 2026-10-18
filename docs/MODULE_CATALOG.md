@@ -6,109 +6,109 @@ Complete reference of all framework modules, organized by capability.
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-parent](https://github.com/fireflyframework/fireflyframework-parent) | Parent POM managing Spring Boot 3.5.10, Spring Cloud 2025, Java 25 (default, 21+ compatible), and all shared plugin/dependency configuration |
-| [fireflyframework-bom](https://github.com/fireflyframework/fireflyframework-bom) | Bill of Materials for conflict-free version alignment across all framework modules |
+| [fireflyframework-parent](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/build/parent) | Parent POM managing Spring Boot 4.1.1, Spring Cloud 2025.1.3, Java 25, and all shared plugin/dependency configuration |
+| [fireflyframework-bom](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/build/bom) | Bill of Materials for conflict-free version alignment across all framework modules |
 
 ## Observability
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-observability](https://github.com/fireflyframework/fireflyframework-observability) | Centralized observability foundation providing unified metrics (`FireflyMetricsSupport`), reactive-safe tracing (`FireflyTracingSupport`), health indicators (`FireflyHealthIndicator`), structured logging, and automatic reactive context propagation with config-based OpenTelemetry/Brave bridge selection and Prometheus/OTLP metrics export |
+| [fireflyframework-observability](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/observability) | Centralized observability foundation providing unified metrics (`FireflyMetricsSupport`), reactive-safe tracing (`FireflyTracingSupport`), health indicators (`FireflyHealthIndicator`), structured logging, and automatic reactive context propagation with config-based OpenTelemetry/Brave bridge selection and Prometheus/OTLP metrics export |
 
 ## Runtime Infrastructure
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-config-server](https://github.com/fireflyframework/fireflyframework-config-server) | Spring Cloud Config Server for centralized configuration management across microservices with hierarchical native profiles |
+| [fireflyframework-config-server](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/config-server) | Spring Cloud Config Server for centralized configuration management across microservices with hierarchical native profiles |
 
 ## Core Framework
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-kernel](https://github.com/fireflyframework/fireflyframework-kernel) | Foundational kernel — shared exception hierarchy (`FireflyInfrastructureException` and friends) and base abstractions that every framework module builds on |
-| [fireflyframework-starter-core](https://github.com/fireflyframework/fireflyframework-starter-core) | Starter for core/infrastructure-layer microservices — WebClient utilities, service discovery, messaging bridges, enhanced actuator, resilience patterns |
-| [fireflyframework-starter-domain](https://github.com/fireflyframework/fireflyframework-starter-domain) | Starter for domain-layer microservices with DDD patterns, CQRS, SAGA orchestration, and event-driven architecture |
-| [fireflyframework-utils](https://github.com/fireflyframework/fireflyframework-utils) | Shared utilities, template rendering, and common helper functions |
-| [fireflyframework-validators](https://github.com/fireflyframework/fireflyframework-validators) | Annotation-based validators for financial, identity, and general-purpose data formats |
-| [fireflyframework-plugins](https://github.com/fireflyframework/fireflyframework-plugins) | Lightweight plugin system with annotation-based discovery and hot-loadable JAR/Spring Bean loaders |
+| [fireflyframework-kernel](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/kernel) | Foundational kernel — shared exception hierarchy (`FireflyInfrastructureException` and friends) and base abstractions that every framework module builds on |
+| [fireflyframework-starter-core](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/starter-core) | Starter for core/infrastructure-layer microservices — WebClient utilities, service discovery, messaging bridges, enhanced actuator, resilience patterns |
+| [fireflyframework-starter-domain](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/starter-domain) | Starter for domain-layer microservices with DDD patterns, CQRS, SAGA orchestration, and event-driven architecture |
+| [fireflyframework-utils](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/utils) | Shared utilities, template rendering, and common helper functions |
+| [fireflyframework-validators](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/validators) | Annotation-based validators for financial, identity, and general-purpose data formats |
+| [fireflyframework-plugins](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/plugins) | Lightweight plugin system with annotation-based discovery and hot-loadable JAR/Spring Bean loaders |
 
 ## Application Layer
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-starter-application](https://github.com/fireflyframework/fireflyframework-starter-application) | Starter for application-layer microservices — business process orchestration, context management, security, authorization, plugin system, and session management for application-tier microservices |
-| [fireflyframework-backoffice](https://github.com/fireflyframework/fireflyframework-backoffice) | Backoffice and internal portal extension with context resolution and resource controller abstractions |
+| [fireflyframework-starter-application](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/starter-application) | Starter for application-layer microservices — business process orchestration, context management, security, authorization, plugin system, and session management for application-tier microservices |
+| [fireflyframework-backoffice](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/backoffice) | Backoffice and internal portal extension with context resolution and resource controller abstractions |
 
 ## Reactive Infrastructure
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-cache](https://github.com/fireflyframework/fireflyframework-cache) | Unified reactive caching abstraction (SPI + Caffeine default + smart multi-tier) with pluggable Redis, Hazelcast, JCache, and PostgreSQL provider adapters (separate modules below) |
-| [fireflyframework-cache-redis](https://github.com/fireflyframework/fireflyframework-cache-redis) | Redis cache provider adapter |
-| [fireflyframework-cache-hazelcast](https://github.com/fireflyframework/fireflyframework-cache-hazelcast) | Hazelcast cache provider adapter |
-| [fireflyframework-cache-jcache](https://github.com/fireflyframework/fireflyframework-cache-jcache) | JSR-107/JCache cache provider adapter |
-| [fireflyframework-cache-postgres](https://github.com/fireflyframework/fireflyframework-cache-postgres) | PostgreSQL R2DBC cache provider adapter |
-| [fireflyframework-r2dbc](https://github.com/fireflyframework/fireflyframework-r2dbc) | Reactive database support with R2DBC auto-configuration and PostgreSQL integration |
-| [fireflyframework-web](https://github.com/fireflyframework/fireflyframework-web) | Spring WebFlux starter with exception handling, idempotency, PII masking, and OpenAPI support |
-| [fireflyframework-client](https://github.com/fireflyframework/fireflyframework-client) | Reactive service client for REST, SOAP, and gRPC with circuit breakers and load balancing |
+| [fireflyframework-cache](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/cache) | Unified reactive caching abstraction (SPI + Caffeine default + smart multi-tier) with pluggable Redis, Hazelcast, JCache, and PostgreSQL provider adapters (separate modules below) |
+| [fireflyframework-cache-redis](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/cache-redis) | Redis cache provider adapter |
+| [fireflyframework-cache-hazelcast](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/cache-hazelcast) | Hazelcast cache provider adapter |
+| [fireflyframework-cache-jcache](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/cache-jcache) | JSR-107/JCache cache provider adapter |
+| [fireflyframework-cache-postgres](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/cache-postgres) | PostgreSQL R2DBC cache provider adapter |
+| [fireflyframework-r2dbc](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/r2dbc) | Reactive database support with R2DBC auto-configuration and PostgreSQL integration |
+| [fireflyframework-web](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/web) | Spring WebFlux starter with exception handling, idempotency, PII masking, and OpenAPI support |
+| [fireflyframework-client](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/client) | Reactive service client for REST, SOAP, and gRPC with circuit breakers and load balancing |
 
 ## Distributed Patterns
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-eda](https://github.com/fireflyframework/fireflyframework-eda) | Event-Driven Architecture core (SPI + in-memory/NOOP transports, dead-letter queues, JSON/Avro/Protobuf serialization, resilience) with pluggable Kafka, RabbitMQ, and PostgreSQL transport adapters (separate modules below) |
-| [fireflyframework-eda-kafka](https://github.com/fireflyframework/fireflyframework-eda-kafka) | Apache Kafka transport adapter |
-| [fireflyframework-eda-rabbitmq](https://github.com/fireflyframework/fireflyframework-eda-rabbitmq) | RabbitMQ transport adapter |
-| [fireflyframework-eda-postgres](https://github.com/fireflyframework/fireflyframework-eda-postgres) | PostgreSQL outbox + LISTEN/NOTIFY transport adapter |
-| [fireflyframework-cqrs](https://github.com/fireflyframework/fireflyframework-cqrs) | CQRS implementation with command/query bus, authorization, caching, and metrics |
-| [fireflyframework-eventsourcing](https://github.com/fireflyframework/fireflyframework-eventsourcing) | Event Sourcing with reactive event store, snapshots, projections, and outbox pattern |
-| [fireflyframework-orchestration](https://github.com/fireflyframework/fireflyframework-orchestration) | Unified reactive orchestration engine combining Workflow, Saga, and TCC patterns with shared persistence, observability, backpressure, validation, execution reporting, and event sourcing |
-| [fireflyframework-starter-data](https://github.com/fireflyframework/fireflyframework-starter-data) | Starter for data-processing microservices — job orchestration, data enrichers, CQRS, event-driven architecture |
+| [fireflyframework-eda](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/eda) | Event-Driven Architecture core (SPI + in-memory/NOOP transports, dead-letter queues, JSON/Avro/Protobuf serialization, resilience) with pluggable Kafka, RabbitMQ, and PostgreSQL transport adapters (separate modules below) |
+| [fireflyframework-eda-kafka](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/eda-kafka) | Apache Kafka transport adapter |
+| [fireflyframework-eda-rabbitmq](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/eda-rabbitmq) | RabbitMQ transport adapter |
+| [fireflyframework-eda-postgres](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/eda-postgres) | PostgreSQL outbox + LISTEN/NOTIFY transport adapter |
+| [fireflyframework-cqrs](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/cqrs) | CQRS implementation with command/query bus, authorization, caching, and metrics |
+| [fireflyframework-eventsourcing](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/eventsourcing) | Event Sourcing with reactive event store, snapshots, projections, and outbox pattern |
+| [fireflyframework-orchestration](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/orchestration) | Unified reactive orchestration engine combining Workflow, Saga, and TCC patterns with shared persistence, observability, backpressure, validation, execution reporting, and event sourcing |
+| [fireflyframework-starter-data](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/starter-data) | Starter for data-processing microservices — job orchestration, data enrichers, CQRS, event-driven architecture |
 
 ## Business Rules
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-rule-engine](https://github.com/fireflyframework/fireflyframework-rule-engine) | YAML DSL-based rule engine with AST processing, Python compilation, audit trails, and reactive APIs for dynamic business rule evaluation |
+| [fireflyframework-rule-engine](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/rule-engine) | YAML DSL-based rule engine with AST processing, Python compilation, audit trails, and reactive APIs for dynamic business rule evaluation |
 
 ## Enterprise Content Management
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-ecm](https://github.com/fireflyframework/fireflyframework-ecm) | Document storage, versioning, permissions, and search abstractions |
-| [fireflyframework-ecm-storage-aws](https://github.com/fireflyframework/fireflyframework-ecm-storage-aws) | Amazon S3 storage adapter |
-| [fireflyframework-ecm-storage-azure](https://github.com/fireflyframework/fireflyframework-ecm-storage-azure) | Azure Blob Storage adapter |
-| [fireflyframework-ecm-esignature-adobe-sign](https://github.com/fireflyframework/fireflyframework-ecm-esignature-adobe-sign) | Adobe Sign eSignature adapter |
-| [fireflyframework-ecm-esignature-docusign](https://github.com/fireflyframework/fireflyframework-ecm-esignature-docusign) | DocuSign eSignature adapter |
-| [fireflyframework-ecm-esignature-logalty](https://github.com/fireflyframework/fireflyframework-ecm-esignature-logalty) | Logalty certified eSignature adapter |
+| [fireflyframework-ecm](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/ecm) | Document storage, versioning, permissions, and search abstractions |
+| [fireflyframework-ecm-storage-aws](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/ecm-storage-aws) | Amazon S3 storage adapter |
+| [fireflyframework-ecm-storage-azure](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/ecm-storage-azure) | Azure Blob Storage adapter |
+| [fireflyframework-ecm-esignature-adobe-sign](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/ecm-esignature-adobe-sign) | Adobe Sign eSignature adapter |
+| [fireflyframework-ecm-esignature-docusign](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/ecm-esignature-docusign) | DocuSign eSignature adapter |
+| [fireflyframework-ecm-esignature-logalty](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/ecm-esignature-logalty) | Logalty certified eSignature adapter |
 
 ## Identity Provider
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-security-idp](https://github.com/fireflyframework/fireflyframework-security-idp) | IDP abstraction layer with ports and DTOs for authentication and authorization |
-| [fireflyframework-security-idp-aws-cognito](https://github.com/fireflyframework/fireflyframework-security-idp-aws-cognito) | AWS Cognito adapter |
-| [fireflyframework-security-idp-azure-ad](https://github.com/fireflyframework/fireflyframework-security-idp-azure-ad) | Azure AD (Microsoft Entra ID) adapter |
-| [fireflyframework-security-idp-internal-db](https://github.com/fireflyframework/fireflyframework-security-idp-internal-db) | Database-backed IDP with R2DBC, JWT tokens, and Flyway migrations |
-| [fireflyframework-security-idp-keycloak](https://github.com/fireflyframework/fireflyframework-security-idp-keycloak) | Keycloak Admin API adapter |
+| [fireflyframework-security-idp](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/security-idp) | IDP abstraction layer with ports and DTOs for authentication and authorization |
+| [fireflyframework-security-idp-aws-cognito](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/security-idp-aws-cognito) | AWS Cognito adapter |
+| [fireflyframework-security-idp-azure-ad](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/security-idp-azure-ad) | Azure AD (Microsoft Entra ID) adapter |
+| [fireflyframework-security-idp-internal-db](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/security-idp-internal-db) | Database-backed IDP with R2DBC, JWT tokens, and Flyway migrations |
+| [fireflyframework-security-idp-keycloak](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/security-idp-keycloak) | Keycloak Admin API adapter |
 
 ## Notifications
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-notifications](https://github.com/fireflyframework/fireflyframework-notifications) | Notification abstractions for email, SMS, and push delivery |
-| [fireflyframework-notifications-firebase](https://github.com/fireflyframework/fireflyframework-notifications-firebase) | Firebase Cloud Messaging push adapter |
-| [fireflyframework-notifications-resend](https://github.com/fireflyframework/fireflyframework-notifications-resend) | Resend email adapter |
-| [fireflyframework-notifications-sendgrid](https://github.com/fireflyframework/fireflyframework-notifications-sendgrid) | SendGrid email adapter |
-| [fireflyframework-notifications-twilio](https://github.com/fireflyframework/fireflyframework-notifications-twilio) | Twilio SMS adapter |
+| [fireflyframework-notifications](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/notifications) | Notification abstractions for email, SMS, and push delivery |
+| [fireflyframework-notifications-firebase](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/notifications-firebase) | Firebase Cloud Messaging push adapter |
+| [fireflyframework-notifications-resend](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/notifications-resend) | Resend email adapter |
+| [fireflyframework-notifications-sendgrid](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/notifications-sendgrid) | SendGrid email adapter |
+| [fireflyframework-notifications-twilio](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/notifications-twilio) | Twilio SMS adapter |
 
 ## Integration
 
 | Repository | Purpose |
 |---|---|
-| [fireflyframework-webhooks](https://github.com/fireflyframework/fireflyframework-webhooks) | Reactive webhook ingestion with provider-agnostic routing, message queue integration, rate limiting, and comprehensive observability |
-| [fireflyframework-callbacks](https://github.com/fireflyframework/fireflyframework-callbacks) | Outbound webhook management for dispatching events to external systems with circuit breakers, retry logic, and domain authorization |
-| [fireflyframework-agentic-bridge](https://github.com/fireflyframework/fireflyframework-agentic-bridge) | Bridge connecting Firefly services to agentic/AI systems — `-core`, `-autoconfigure`, and Spring Boot `-starter` modules |
+| [fireflyframework-webhooks](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/webhooks) | Reactive webhook ingestion with provider-agnostic routing, message queue integration, rate limiting, and comprehensive observability |
+| [fireflyframework-callbacks](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/callbacks) | Outbound webhook management for dispatching events to external systems with circuit breakers, retry logic, and domain authorization |
+| [fireflyframework-agentic-bridge](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/agentic-bridge) | Bridge connecting Firefly services to agentic/AI systems — `-core`, `-autoconfigure`, and Spring Boot `-starter` modules |
 
 ## Tooling & Automation
 
@@ -169,8 +169,8 @@ Then declare only the modules you need -- no version tags required:
 
 ## Technology Stack
 
-- **Java 25** (default, Java 21+ compatible) with virtual threads support
-- **Spring Boot 3.5.10** / **Spring Cloud 2025.0.1**
+- **Java 25** with virtual threads support
+- **Spring Boot 4.1.1** / **Spring Cloud 2025.1.3**
 - **Spring WebFlux** and **Project Reactor** for reactive programming
 - **R2DBC** for non-blocking database access
 - **Kafka** and **RabbitMQ** for event-driven messaging

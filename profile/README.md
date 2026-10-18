@@ -25,7 +25,7 @@ The frameworks handle composition, command and query dispatch, persistence, mess
 | <a href="https://fireflyframework.org/frameworks/rust/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://fireflyframework.org/brand/frameworks/rust-dark.svg"><img src="https://fireflyframework.org/brand/frameworks/rust-light.svg" alt="rsfly by Firefly" width="130"></picture></a> | Rust · Tokio and Axum | [Guide](https://fireflyframework.org/frameworks/rust/) · [Source](https://github.com/fireflyframework/fireflyframework-rust) |
 | <a href="https://fireflyframework.org/frameworks/dotnet/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://fireflyframework.org/brand/frameworks/dotnet-dark.svg"><img src="https://fireflyframework.org/brand/frameworks/dotnet-light.svg" alt="netfly by Firefly" width="130"></picture></a> | C# · ASP.NET Core | [Guide](https://fireflyframework.org/frameworks/dotnet/) · [Source](https://github.com/fireflyframework/fireflyframework-dotnet) |
 
-jafly spans the modular Java repositories. Start with its [setup guide](https://github.com/fireflyframework/.github/blob/main/docs/GETTING_STARTED.md), [parent project](https://github.com/fireflyframework/fireflyframework-parent), and [CLI](https://github.com/fireflyframework/fireflyframework-cli). The other language implementations each have their own repository and installation guide. pyfly distributes through [GitHub Releases](https://github.com/fireflyframework/fireflyframework-pyfly/releases).
+jafly keeps its Java modules in the [Jafly monorepo](https://github.com/fireflyframework/fireflyframework-jafly). Start with its [setup guide](https://github.com/fireflyframework/.github/blob/main/docs/GETTING_STARTED.md), [parent project](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/build/parent), and [CLI](https://github.com/fireflyframework/fireflyframework-cli). The other language implementations each have their own repository and installation guide. pyfly distributes through [GitHub Releases](https://github.com/fireflyframework/fireflyframework-pyfly/releases).
 
 ## How a service fits together
 
@@ -48,7 +48,7 @@ Domain logic stays separate from transport and provider code. The native librari
 | Firefly Agentic | A Python library on Pydantic AI for agents with tools, memory, and retrieval. Your application collects approvals for tools that need them. | [Guide](https://fireflyframework.org/agentic/) · [Source](https://github.com/fireflyframework/fireflyframework-agentic) |
 | Firefly Weave | Business processes across systems and people. Author workflows in Studio, YAML, JSON, or Python; runs retain their history while waiting for events and human tasks. | [Guide](https://fireflyframework.org/weave/) · [Source](https://github.com/fireflyframework/firefly-weave) |
 
-[Firefly Agent Bridge](https://github.com/fireflyframework/firefly-agent-bridge) connects applications and Forge to a developer's signed-in coding CLI. The [Java Agentic Bridge](https://github.com/fireflyframework/fireflyframework-agentic-bridge) connects Java services to an HTTP agent service.
+[Firefly Agent Bridge](https://github.com/fireflyframework/firefly-agent-bridge) connects applications and Forge to a developer's signed-in coding CLI. The [Java Agentic Bridge](https://github.com/fireflyframework/fireflyframework-jafly/tree/main/modules/agentic-bridge) connects Java services to an HTTP agent service.
 
 ## Learn by building
 

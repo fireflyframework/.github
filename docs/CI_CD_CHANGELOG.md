@@ -241,3 +241,9 @@ The `flywork build` command recorded the SHA even for failed builds, so `DetectC
 - Added `<name>` and `<description>` to 12 pom.xml files for Maven Central compliance
 - Removed `continue-on-error: true` from pyright step in `python-ci.yml`
 - Created CI workflow for `flyfront` (Angular/NX)
+
+---
+
+## 26.10.17 — Jafly monorepo migration
+
+Java sources move to `fireflyframework-jafly`, preserving original history and Maven coordinates. The root Maven reactor owns build ordering; standalone parent and BOM share one version train. Jafly uses Java 25 and Spring Boot 4.1.1. The organization dispatcher routes old Java names to a single destination workflow. Final publication verifies all expected registry artifacts before creating a release. Prior entries above describe the historical multi-repository process. See [the current guide](CI_CD_GUIDE.md) for operational instructions; this entry does not assert a final Maven release was published.

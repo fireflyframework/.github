@@ -1,12 +1,12 @@
 # Contributing to Firefly Framework
 
-Thank you for your interest in contributing to Firefly Framework! This guide covers everything you need to get started, from setting up your environment to submitting a pull request.
+For Java changes, work in Jafly. Each other framework has its own repository, toolchain, and contribution instructions. Check the target project's guide before opening a pull request.
 
 Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
 ---
 
-## Table of Contents
+## Contents
 
 - [Prerequisites](#prerequisites)
 - [Quick Setup](#quick-setup)
@@ -20,32 +20,34 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md) before contribu
 
 ## Prerequisites
 
-Ensure the following tools are installed and available on your `PATH`:
+Install the tools required by the project you are changing:
 
 | Tool | Required Version | Notes |
 |--------|------------------|--------------------------------|
-| Java | 25 (21+ compatible) | Default is Java 25; builds must pass on 21+ |
+| Java | 25 | Jafly reactor baseline |
 | Maven | 3.9+ | Used for all Java module builds |
 | Go | 1.25+ | Required for the CLI (`flywork`) |
-| Python | 3.13+ | Required for GenAI modules and tooling |
+| Python | 3 | Jafly validation and release tools; Python frameworks define their own minimum |
 | Git | 2.30+ | Required for branching workflows |
 
-## Quick Setup
+Jafly also needs Docker for its container-backed integration tests. Its checkout includes the Maven 3.9.16 wrapper. Go is required when building the CLI from source.
 
-The fastest way to bootstrap your development environment is with the Firefly CLI:
+## Quick setup
+
+Install the current Firefly CLI, then set up Jafly:
 
 ```bash
-flywork setup # clones all repos in dependency order and installs to ~/.m2
+flywork setup # clones Jafly and installs the reactor to ~/.m2
 flywork doctor # verifies your environment (Java, Maven, Go, Python, Git, etc.)
 ```
 
-`flywork doctor` will check every prerequisite listed above and report any issues.
+`flywork doctor` checks Java, Maven, Git, Docker availability, framework setup state, and parent/BOM installation. It does not validate the Go or Python toolchain. Use the target repository's checks when changing those projects.
 
 ---
 
-## Branching Model
+## Branching model
 
-Firefly Framework follows a **Gitflow** branching model across all repositories.
+Jafly uses `develop` for integration and `main` for release work. The initial import installs the same development snapshot on both branches. Other framework repositories define their own branch and versioning policies.
 
 ```
   main ─────────●────────────────●──────────────── production releases
@@ -61,26 +63,26 @@ Firefly Framework follows a **Gitflow** branching model across all repositories.
   feature/b `●'
 ```
 
-### Branch Purposes
+### Branch purposes
 
 | Branch | Created From | Merges Into | Purpose |
 |-------------------|--------------|--------------------|--------------------------------|
-| `main` | -- | -- | Production releases only |
+| `main` | -- | -- | Reviewed release work and the initial framework import |
 | `develop` | `main` | -- | Integration branch for all work |
 | `feature/<name>` | `develop` | `develop` | New features and enhancements |
-| `release/YY.MM` | `develop` | `main` + `develop` | Release stabilization and prep |
+| `release/YY.MM.PP` | `develop` | `main` + `develop` | Release stabilization and preparation |
 | `hotfix/<name>` | `main` | `main` + `develop` | Emergency production fixes |
 
 ### Rules
 
-- **Never** push directly to `main` or `develop`.
+- Use pull requests for ongoing changes to `main` and `develop`.
 - Feature branches must be up to date with `develop` before merging.
-- Release branches receive only bug fixes -- no new features.
+- Keep release branches limited to stabilization fixes.
 - Hotfix branches are reserved for critical production issues and must include a regression test.
 
 ---
 
-## Pull Request Process
+## Pull request process
 
 1. **Branch** from `develop`:
    ```bash
@@ -107,15 +109,15 @@ Firefly Framework follows a **Gitflow** branching model across all repositories.
 
 ## Versioning (CalVer)
 
-Firefly Framework uses **Calendar Versioning** in `YY.MM.PATCH` format:
+Java releases use calendar versioning in padded `YY.MM.PP` format; `PP` counts releases within the month:
 
 | Segment | Meaning | Example |
 |---------|--------------------------------|----------|
 | `YY` | Two-digit year of the release | `26` |
 | `MM` | Two-digit month of the release | `01` |
-| `PATCH` | Incremental patch number | `01` |
+| `PP` | Release counter within the month | `01` |
 
-A full version looks like **`26.02.07`** (February 2026, sixth patch).
+A full version looks like `26.02.07` (February 2026, seventh release).
 
 - The `develop` branch always carries a `-SNAPSHOT` suffix (e.g., `26.02.00-SNAPSHOT`).
 - Release branches drop the `-SNAPSHOT` suffix when they are finalized.
@@ -123,7 +125,7 @@ A full version looks like **`26.02.07`** (February 2026, sixth patch).
 
 ---
 
-## Code Standards
+## Code standards
 
 ### Java
 
@@ -161,7 +163,7 @@ A full version looks like **`26.02.07`** (February 2026, sixth patch).
 
 ---
 
-## Commit Conventions
+## Commit conventions
 
 All commits must follow the format:
 
@@ -190,11 +192,11 @@ docs: update module catalog with new webhooks module
 refactor: extract saga step builder into shared utility
 test: add integration tests for event sourcing projections
 ci: add Java 25 to build matrix
-chore: bump Spring Boot to 3.5.10
+chore: align Spring Boot 4 dependency management
 ```
 
 The summary should be lowercase, imperative mood, and no longer than 72 characters.
 
 ---
 
-Thank you for contributing to Firefly Framework! If you have questions, open a thread in [GitHub Discussions](https://github.com/orgs/fireflyframework/discussions).
+Ask contribution questions in [GitHub Discussions](https://github.com/orgs/fireflyframework/discussions).
