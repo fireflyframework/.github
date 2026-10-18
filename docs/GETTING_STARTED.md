@@ -1,10 +1,10 @@
 # Getting started with Jafly
 
-[Jafly](https://github.com/fireflyframework/fireflyframework-jafly) is the Java implementation of the Firefly Framework. Its modules share one repository, one Maven reactor, and one parent/BOM release train. Other language frameworks retain their own monorepos.
+[Jafly](https://github.com/fireflyframework/fireflyframework-jafly) is the Java implementation of the Firefly Framework. Start from its [documentation](https://fireflyframework.github.io/fireflyframework-jafly/) and [module catalog](https://fireflyframework.github.io/fireflyframework-jafly/modules/).
 
 ## Prerequisites
 
-Use JDK 25, Git, and Docker for the integration tests. The repository includes a Maven wrapper; an existing Maven 3.9+ installation is also supported. Source builds resolve internal modules within the reactor without a GitHub Packages token.
+Use JDK 25, Git, and Docker for the integration tests. The repository includes a Maven wrapper; an existing Maven 3.9+ installation is also supported. Source builds can install locally without a GitHub Packages token.
 
 ## Build from source
 
