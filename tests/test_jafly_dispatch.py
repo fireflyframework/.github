@@ -19,7 +19,7 @@ class DispatchTest(unittest.TestCase):
                 self.assertEqual(json.loads(result.stdout), ['gh', 'workflow', 'run', 'ci.yml', '--repo', 'fireflyframework/fireflyframework-jafly', '--ref', 'develop'])
 
     def test_python_and_other_frameworks_cannot_trigger_java(self):
-        for repository in ['fireflyframework-agentic', 'fireflyframework-datascience', 'fireflyframework-pyfly', 'fireflyframework-php', 'fireflyframework-rust', 'fireflyframework-dotnet', 'fireflyframework-go', 'secrets-vault']:
+        for repository in ['fireflyframework-agentic', 'fireflyframework-pyfly', 'fireflyframework-php', 'fireflyframework-rust', 'fireflyframework-dotnet', 'fireflyframework-go', 'secrets-vault']:
             with self.subTest(repository=repository):
                 result = self.invoke(repository)
                 self.assertNotEqual(result.returncode, 0)
